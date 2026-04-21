@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
     "watch": "tsc -w",
     "dev": "nodemon --inspect dist/index.js",
     "jest": "jest -i",
@@ -15,7 +17,8 @@
   "license": "ISC",
   "packageManager": "pnpm@10.8.1",
   "dependencies": {
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "express-validator": "^7.3.2"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
