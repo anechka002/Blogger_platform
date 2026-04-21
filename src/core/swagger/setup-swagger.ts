@@ -6,9 +6,12 @@ const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Blog API',
+      title: 'Blogger Platform API',
       version: '1.0.0',
-      description: 'blog API',
+      description: `
+        CRUD operations for Blog and Post.
+        Basic authorization: login admin, password qwerty.
+      `,
     },
   },
   apis: ['./src/**/*.swagger.yml'],
