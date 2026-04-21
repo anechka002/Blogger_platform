@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "name": "samurai_video",
+  "name": "Blogger_platform",
   "builds": [
     {
       "src": "src/index.ts",
