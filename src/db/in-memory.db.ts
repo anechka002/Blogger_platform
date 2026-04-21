@@ -1,4 +1,4 @@
-import {DB} from "../blogs/types/blog";
+import {DB} from "./db.type";
 
 export const db: DB = {
   blogs: [

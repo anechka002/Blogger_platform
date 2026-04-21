@@ -3,7 +3,7 @@ import {
   ValidationError,
   validationResult
 } from "express-validator";
-import {ValidationErrorType} from "../../types/validationErrorType";
+import {ValidationErrorType} from "../../types/validation-errors.ts";
 import {Request, Response, NextFunction} from "express";
 import {HttpStatus} from "../../types/http-statuses";
 
