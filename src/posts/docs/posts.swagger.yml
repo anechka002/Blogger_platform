@@ -1,0 +1,222 @@
+openapi: 3.0.0
+info:
+  title: Posts API Documentation
+  version: 1.0.0
+
+security:
+  - BasicAuth: []
+
+tags:
+  - name: Posts
+    description: API for managing posts
+
+paths:
+  /api/posts:
+    get:
+      summary: Returns all posts
+      tags: [Posts]
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostViewDto'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostViewDto'
+            text/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostViewDto'
+    post:
+      summary: Create new post
+      tags: [Posts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostInputDto'
+      responses:
+        '201':
+          description: The post was successfully created
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/PostViewDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostViewDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/PostViewDto'
+        '400':
+          description: If the inputModel has incorrect values
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/APIErrorResult'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResult'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResult'
+        '401':
+          description: Unauthorized
+
+  /api/posts/{id}:
+    get:
+      summary: Get a post by ID
+      tags: [Posts]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: Id of existing post
+          schema:
+            type: string
+            example: id
+      responses:
+        '200':
+          description: The requested post
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/PostViewDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostViewDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/PostViewDto'
+        '404':
+          description: Not found
+    put:
+      summary: Update a post by ID
+      tags: [Posts]
+      requestBody:
+        description: Data for updating
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostInputDto'
+
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: id
+
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: If the inputModel has incorrect values
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/APIErrorResult'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResult'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResult'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not found
+    delete:
+      summary: Delete a post by ID
+      tags: [Posts]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: Post id
+          schema:
+            type: string
+            example: id
+      responses:
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not found
+
+components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    PostViewDto:
+      type: object
+      required:
+        - id
+        - title
+        - shortDescription
+        - content
+        - blogId
+        - blogName
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        shortDescription:
+          type: string
+        content:
+          type: string
+        blogId:
+          type: string
+        blogName:
+          type: string
+    PostInputDto:
+      type: object
+      required:
+        - title
+        - shortDescription
+        - content
+        - blogId
+      properties:
+        title:
+          type: string
+          maxLength: 30
+        shortDescription:
+          type: string
+          maxLength: 100
+        content:
+          type: string
+          maxLength: 1000
+        blogId:
+          type: string
+    FieldError:
+      type: object
+      properties:
+        field:
+          type: string
+          nullable: true
+          description: What field/property of input model has error
+        message:
+          type: string
+          nullable: true
+          description: Message with error explanation for certain field
+    APIErrorResult:
+      type: object
+      properties:
+        errorsMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldError'
