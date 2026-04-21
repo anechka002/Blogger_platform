@@ -8,6 +8,7 @@ import {blogsRepository} from "../../../blogs/repositories/blogs.repository";
 import {createValidationErrorResponse} from "../../../core/utils/error.utils";
 import {ValidationErrorDto} from "../../../core/types/validation-errors.ts";
 import {postsRepository} from "../../repositories/posts.repository";
+import {db} from "../../../db/in-memory.db";
 
 export const createPostHandler = (req: RequestWithBody<CreatePostDto>, res: Response<PostViewDto | ValidationErrorDto>)=> {
   const blog = blogsRepository.findById(req.body.blogId)
@@ -25,8 +26,12 @@ export const createPostHandler = (req: RequestWithBody<CreatePostDto>, res: Resp
     return;
   }
 
+  const newId = db.posts.length
+    ? Number(db.posts[db.posts.length - 1].id) + 1
+    : 1
+
   const newPost: Post = {
-    id: new Date().toISOString(),
+    id: String(newId),
     title: req.body.title,
     shortDescription: req.body.shortDescription,
     content: req.body.content,

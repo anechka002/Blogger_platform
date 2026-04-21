@@ -5,10 +5,16 @@ import {CreateBlogDto} from "../../dto/createBlogDto";
 import {RequestWithBody} from "../../../types";
 import {BlogViewDto} from "../../dto/blogViewDto";
 import {Blog} from "../../types/blog";
+import {db} from "../../../db/in-memory.db";
 
 export const createBlogHandler = (req: RequestWithBody<CreateBlogDto>, res: Response<BlogViewDto>)=> {
+
+  const newId = db.blogs.length
+    ? Number(db.blogs[db.blogs.length - 1].id) + 1
+    : 1
+
   const newBlog: Blog = {
-    id: new Date().toISOString(),
+    id: String(newId),
     name: req.body.name,
     description: req.body.description,
     websiteUrl: req.body.websiteUrl
