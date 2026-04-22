@@ -1,11 +1,13 @@
 /// <reference types="jest" />
+
 import request from 'supertest';
 import express from 'express';
 import { setupApp } from '../../../src/setup-app';
 import { BLOGS_PATH } from '../../../src/core/path/path';
 import { HttpStatus } from '../../../src/core/types/http-statuses';
-import {generateBasicAuthToken} from "../../utils/generate-admin-auth-token";
-import {clearDb} from "../../utils/clear-db";
+import { generateBasicAuthToken } from '../../utils/generate-admin-auth-token';
+import { clearDb } from '../../utils/clear-db';
+import { getBlogDto } from '../../utils/blogs/get-blog-dto';
 
 describe('blogs body validation e2e', () => {
   const app = express();
@@ -17,14 +19,23 @@ describe('blogs body validation e2e', () => {
     await clearDb(app);
   });
 
+  const validBlogDto = getBlogDto();
+
+  const expectEmptyBlogsList = async () => {
+    const response = await request(app)
+      .get(BLOGS_PATH)
+      .expect(HttpStatus.Ok_200);
+
+    expect(response.body).toEqual([]);
+  };
+
   it('should return 400 and error for empty name', async () => {
     const response = await request(app)
       .post(BLOGS_PATH)
       .set('Authorization', adminAuth)
       .send({
+        ...validBlogDto,
         name: '',
-        description: 'valid description',
-        websiteUrl: 'https://valid-site.dev',
       })
       .expect(HttpStatus.BadRequest_400);
 
@@ -37,11 +48,7 @@ describe('blogs body validation e2e', () => {
       ],
     });
 
-    const result = await request(app)
-      .get(BLOGS_PATH)
-      .expect(HttpStatus.Ok_200);
-
-    expect(result.body).toEqual([]);
+    await expectEmptyBlogsList();
   });
 
   it('should return 400 and error for too long name', async () => {
@@ -49,9 +56,8 @@ describe('blogs body validation e2e', () => {
       .post(BLOGS_PATH)
       .set('Authorization', adminAuth)
       .send({
+        ...validBlogDto,
         name: 'a'.repeat(16),
-        description: 'valid description',
-        websiteUrl: 'https://valid-site.dev',
       })
       .expect(HttpStatus.BadRequest_400);
 
@@ -63,6 +69,8 @@ describe('blogs body validation e2e', () => {
         },
       ],
     });
+
+    await expectEmptyBlogsList();
   });
 
   it('should return 400 and error for empty description', async () => {
@@ -70,9 +78,8 @@ describe('blogs body validation e2e', () => {
       .post(BLOGS_PATH)
       .set('Authorization', adminAuth)
       .send({
-        name: 'valid name',
+        ...validBlogDto,
         description: '',
-        websiteUrl: 'https://valid-site.dev',
       })
       .expect(HttpStatus.BadRequest_400);
 
@@ -84,6 +91,8 @@ describe('blogs body validation e2e', () => {
         },
       ],
     });
+
+    await expectEmptyBlogsList();
   });
 
   it('should return 400 and error for too long description', async () => {
@@ -91,9 +100,8 @@ describe('blogs body validation e2e', () => {
       .post(BLOGS_PATH)
       .set('Authorization', adminAuth)
       .send({
-        name: 'valid name',
+        ...validBlogDto,
         description: 'd'.repeat(501),
-        websiteUrl: 'https://valid-site.dev',
       })
       .expect(HttpStatus.BadRequest_400);
 
@@ -105,6 +113,8 @@ describe('blogs body validation e2e', () => {
         },
       ],
     });
+
+    await expectEmptyBlogsList();
   });
 
   it('should return 400 and error for invalid websiteUrl', async () => {
@@ -112,8 +122,7 @@ describe('blogs body validation e2e', () => {
       .post(BLOGS_PATH)
       .set('Authorization', adminAuth)
       .send({
-        name: 'valid name',
-        description: 'valid description',
+        ...validBlogDto,
         websiteUrl: 'http://invalid-site.dev',
       })
       .expect(HttpStatus.BadRequest_400);
@@ -126,6 +135,8 @@ describe('blogs body validation e2e', () => {
         },
       ],
     });
+
+    await expectEmptyBlogsList();
   });
 
   it('should return all field errors for invalid body', async () => {
@@ -155,5 +166,7 @@ describe('blogs body validation e2e', () => {
         },
       ],
     });
+
+    await expectEmptyBlogsList();
   });
 });
