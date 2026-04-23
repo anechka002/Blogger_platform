@@ -3,7 +3,7 @@
 import request from 'supertest';
 import express from 'express';
 import { setupApp } from '../../../src/setup-app';
-import { BLOGS_PATH } from '../../../src/core/path/path';
+import { BLOGS_PATH } from '../../../src/core/paths/paths';
 import { HttpStatus } from '../../../src/core/types/http-statuses';
 import { generateBasicAuthToken } from '../../utils/generate-admin-auth-token';
 import { clearDb } from '../../utils/clear-db';

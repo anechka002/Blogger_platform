@@ -1,7 +1,7 @@
 import {Response} from "express";
 import {blogsRepository} from "../../repositories/blogs.repository";
 import {HttpStatus} from "../../../core/types/http-statuses";
-import {RequestWithParamsAndBody} from "../../../types";
+import {RequestWithParamsAndBody} from "../../../core/types/request-types";
 import {UpdateBlogDto} from "../../dto/updateBlogDto";
 import {URIParamsBlogIdDto} from "../../dto/URIParamsBlogIdDto";
 

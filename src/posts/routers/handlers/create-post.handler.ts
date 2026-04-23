@@ -1,6 +1,6 @@
 import {Response} from "express";
 import {HttpStatus} from "../../../core/types/http-statuses";
-import {RequestWithBody} from "../../../types";
+import {RequestWithBody} from "../../../core/types/request-types";
 import {Post} from "../../types/post";
 import {CreatePostDto} from "../../dto/createPostDto";
 import {PostViewDto} from "../../dto/postViewDto";

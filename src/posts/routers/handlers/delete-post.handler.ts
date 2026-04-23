@@ -1,7 +1,7 @@
 import {Response} from "express";
 import {postsRepository} from "../../repositories/posts.repository";
 import {HttpStatus} from "../../../core/types/http-statuses";
-import {RequestWithParams} from "../../../types";
+import {RequestWithParams} from "../../../core/types/request-types";
 import {URIParamsPostIdDto} from "../../dto/URIParamsPostIdDto";
 
 export const deletePostHandler = (req: RequestWithParams<URIParamsPostIdDto>, res: Response)=> {

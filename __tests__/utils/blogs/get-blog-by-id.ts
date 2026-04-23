@@ -2,7 +2,7 @@ import request from 'supertest';
 import { Express } from 'express';
 import {HttpStatus} from "../../../src/core/types/http-statuses";
 import {Blog} from "../../../src/blogs/types/blog";
-import {BLOGS_PATH} from "../../../src/core/path/path";
+import {BLOGS_PATH} from "../../../src/core/paths/paths";
 
 export async function getBlogById(
   app: Express,

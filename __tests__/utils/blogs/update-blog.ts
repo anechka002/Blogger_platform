@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { Express } from 'express';
-import {BLOGS_PATH} from "../../../src/core/path/path";
+import {BLOGS_PATH} from "../../../src/core/paths/paths";
 import {HttpStatus} from "../../../src/core/types/http-statuses";
 import {generateBasicAuthToken} from "../generate-admin-auth-token";
 import {CreateBlogDto} from "../../../src/blogs/dto/createBlogDto";

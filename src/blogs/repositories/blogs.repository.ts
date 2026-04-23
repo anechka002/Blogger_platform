@@ -20,15 +20,15 @@ export const blogsRepository = {
   },
 
   // Обновить данные бдога
-  update(id: string, dto: UpdateBlogDto): void {
+  update(id: string, dto: UpdateBlogDto): boolean {
     const blog = db.blogs.find((b) => b.id === id);
-    if (!blog) return;
+    if (!blog) return false;
 
     blog.name = dto.name;
     blog.description = dto.description;
     blog.websiteUrl = dto.websiteUrl;
 
-    return
+    return true
   },
 
   // Удалить блог

@@ -1,7 +1,7 @@
 import {Response} from "express";
 import {blogsRepository} from "../../repositories/blogs.repository";
 import {HttpStatus} from "../../../core/types/http-statuses";
-import {RequestWithParams} from "../../../types";
+import {RequestWithParams} from "../../../core/types/request-types";
 import {URIParamsBlogIdDto} from "../../dto/URIParamsBlogIdDto";
 
 export const deleteBlogHandler = (req: RequestWithParams<URIParamsBlogIdDto>, res: Response)=> {
