@@ -9,12 +9,23 @@ import { generateBasicAuthToken } from '../../utils/generate-admin-auth-token';
 import { clearDb } from '../../utils/clear-db';
 import { getPostDto } from "../../utils/posts/get-post-dto";
 import { createBlog } from "../../utils/blogs/create-blog";
+import {runDB, stopDb} from "../../../src/db/mongo.db";
+import {getPostById} from "../../utils/posts/get-post-by-id";
+import {createPost} from "../../utils/posts/create-post";
 
 describe('posts body validation e2e', () => {
   const app = express();
   setupApp(app);
 
   const adminAuth = generateBasicAuthToken();
+
+  beforeAll(async () => {
+    await runDB('mongodb+srv://root:root@clustermongodb.98xltqo.mongodb.net/?appName=ClusterMongoDB');
+  });
+
+  afterAll(async () => {
+    await stopDb();
+  });
 
   beforeEach(async () => {
     await clearDb(app);
@@ -40,23 +51,89 @@ describe('posts body validation e2e', () => {
       .expect(HttpStatus.Unauthorized_401);
   });
 
-  it(`❌ should return 400 when post body is incorrect`, async () => {
+  it(`POST -> "/posts": ❌ should return 400 when post body is incorrect`, async () => {
 
-    const invalidDataSet1 = await request(app)
+    const response = await request(app)
       .post(POSTS_PATH)
       .set('Authorization', adminAuth)
       .send({
-        title: '   ', // empty string
-        shortDescription: 1,
-        content: 1,
-        blogId: 'bla',
+        title: '',
+        shortDescription: '',
+        content: '',
+        blogId: '',
       })
       .expect(HttpStatus.BadRequest_400);
 
-    expect(invalidDataSet1.body.errorsMessages).toHaveLength(4);
+    expect(response.body).toEqual({
+      errorsMessages: [
+        {
+          field: 'title',
+          message: 'Length of title is not correct',
+        },
+        {
+          field: 'shortDescription',
+          message: 'Length of description is not correct',
+        },
+        {
+          field: 'content',
+          message: 'Length of content is not correct',
+        },
+        {
+          field: 'blogId',
+          message: 'blogId is required',
+        },
+      ],
+    });
+
+    const postsResponse = await request(app)
+      .get(POSTS_PATH)
+      .expect(HttpStatus.Ok_200);
+
+    expect(postsResponse.body).toEqual([]);
   });
 
-  it(`❌ should return 400 and error for empty title`, async () => {
+  it(`PUT -> "/posts": ❌ should return 400 when put body is incorrect` , async () => {
+    const createdBlog = await createBlog(app);
+    const createdPost = await createPost(app, createdBlog.id);
+
+    const response = await request(app)
+      .put(`${POSTS_PATH}/${createdPost.id}`)
+      .set('Authorization', adminAuth)
+      .send({
+        title: '',
+        shortDescription: '',
+        content: '',
+        blogId: '',
+      })
+      .expect(HttpStatus.BadRequest_400);
+
+    expect(response.body).toEqual({
+      errorsMessages: [
+        {
+          field: 'title',
+          message: 'Length of title is not correct',
+        },
+        {
+          field: 'shortDescription',
+          message: 'Length of description is not correct',
+        },
+        {
+          field: 'content',
+          message: 'Length of content is not correct',
+        },
+        {
+          field: 'blogId',
+          message: 'blogId is required',
+        },
+      ],
+    });
+
+    const foundPost = await getPostById(app, createdPost.id);
+
+    expect(foundPost).toEqual(createdPost);
+  });
+
+  it(`should return 400 and error for empty title`, async () => {
     const validPostDto = await createValidPostDto();
 
     const response = await request(app)

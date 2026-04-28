@@ -3,7 +3,7 @@
 import request from 'supertest';
 import express from 'express';
 import { setupApp } from '../../../src/setup-app';
-import { BLOGS_PATH } from '../../../src/core/paths/paths';
+import { BLOGS_PATH, TESTING_PATH } from '../../../src/core/paths/paths';
 import { HttpStatus } from '../../../src/core/types/http-statuses';
 import { clearDb } from '../../utils/clear-db';
 import { createBlog } from '../../utils/blogs/create-blog';
@@ -12,6 +12,7 @@ import { getBlogById } from '../../utils/blogs/get-blog-by-id';
 import { updateBlog } from '../../utils/blogs/update-blog';
 import { deleteBlog } from '../../utils/blogs/delete-blog';
 import { generateBasicAuthToken } from '../../utils/generate-admin-auth-token';
+import { runDB, stopDb } from '../../../src/db/mongo.db';
 
 describe('blogs e2e', () => {
   const app = express();
@@ -20,74 +21,72 @@ describe('blogs e2e', () => {
   const adminAuth = generateBasicAuthToken();
   const incorrectAdminAuth = generateBasicAuthToken('admin', 'wrong-password');
 
+  beforeAll(async () => {
+    await runDB('mongodb+srv://root:root@clustermongodb.98xltqo.mongodb.net/?appName=ClusterMongoDB');
+  });
+
+  afterAll(async () => {
+    await stopDb();
+  });
+
   beforeEach(async () => {
     await clearDb(app);
   });
 
-  it('should return empty array when db is empty', async () => {
-    const response = await request(app)
+  it('DELETE -> "/testing/all-data": should remove all data; status 204', async () => {
+    await createBlog(app);
+
+    const blogsBeforeClear = await request(app)
       .get(BLOGS_PATH)
       .expect(HttpStatus.Ok_200);
 
-    expect(response.body).toEqual([]);
+    expect(blogsBeforeClear.body).toHaveLength(1);
+
+    await request(app)
+      .delete(`${TESTING_PATH}/all-data`)
+      .expect(HttpStatus.NoContent_204);
+
+    const blogsAfterClear = await request(app)
+      .get(BLOGS_PATH)
+      .expect(HttpStatus.Ok_200);
+
+    expect(blogsAfterClear.body).toEqual([]);
   });
 
-  it('should create blog with valid auth and return it in list', async () => {
+  it('POST -> "/blogs": should create new blog; status 201; content: created blog; used additional methods: GET -> /blogs/:id', async () => {
     const createdBlog = await createBlog(app);
 
     expect(createdBlog).toEqual({
       id: expect.any(String),
       ...getBlogDto(),
+      createdAt: expect.any(String),
+      isMembership: false,
     });
 
-    const listResponse = await request(app)
-      .get(BLOGS_PATH)
-      .expect(HttpStatus.Ok_200);
-
-    expect(listResponse.body).toEqual([createdBlog]);
-  });
-
-  it('should return 401 and not create blog without auth', async () => {
-    await request(app)
-      .post(BLOGS_PATH)
-      .send(getBlogDto())
-      .expect(HttpStatus.Unauthorized_401);
-
-    const listResponse = await request(app)
-      .get(BLOGS_PATH)
-      .expect(HttpStatus.Ok_200);
-
-    expect(listResponse.body).toEqual([]);
-  });
-
-  it('should return 401 and not create blog with incorrect auth credentials', async () => {
-    await request(app)
-      .post(BLOGS_PATH)
-      .set('Authorization', incorrectAdminAuth)
-      .send(getBlogDto())
-      .expect(HttpStatus.Unauthorized_401);
-
-    const listResponse = await request(app)
-      .get(BLOGS_PATH)
-      .expect(HttpStatus.Ok_200);
-
-    expect(listResponse.body).toEqual([]);
-  });
-
-  it('should return created blog by id', async () => {
-    const createdBlog = await createBlog(app);
     const foundBlog = await getBlogById(app, createdBlog.id);
 
     expect(foundBlog).toEqual(createdBlog);
   });
 
-  it('should return 404 for non-existing blog by id', async () => {
-    await request(app)
-      .get(`${BLOGS_PATH}/999`)
-      .expect(HttpStatus.NotFound_404);
+  it('GET -> "blogs/:id": should return status 200; content: blog by id; used additional methods: POST -> /blogs', async () => {
+    const createdBlog = await createBlog(app);
+
+    const foundBlog = await getBlogById(app, createdBlog.id);
+
+    expect(foundBlog).toEqual(createdBlog);
   });
 
-  it('should update existing blog and return updated entity by id', async () => {
+  it('GET -> "/blogs": should return status 200; content: blogs array; used additional methods: POST -> /blogs', async () => {
+    const createdBlog = await createBlog(app);
+
+    const response = await request(app)
+      .get(BLOGS_PATH)
+      .expect(HttpStatus.Ok_200);
+
+    expect(response.body).toEqual([createdBlog]);
+  });
+
+  it('PUT -> "/blogs/:id": should update blog by id; status 204; used additional methods: POST -> /blogs, GET -> /blogs/:id', async () => {
     const createdBlog = await createBlog(app);
 
     const updatePayload = {
@@ -103,96 +102,12 @@ describe('blogs e2e', () => {
     expect(updatedBlog).toEqual({
       id: createdBlog.id,
       ...updatePayload,
+      createdAt: createdBlog.createdAt,
+      isMembership: createdBlog.isMembership,
     });
   });
 
-  it('should return 401 and not update blog without auth', async () => {
-    const createdBlog = await createBlog(app);
-
-    const updatePayload = {
-      name: 'Updated blog',
-      description: 'updated description',
-      websiteUrl: 'https://updated-blog.dev',
-    };
-
-    await request(app)
-      .put(`${BLOGS_PATH}/${createdBlog.id}`)
-      .send(updatePayload)
-      .expect(HttpStatus.Unauthorized_401);
-
-    const foundBlog = await getBlogById(app, createdBlog.id);
-
-    expect(foundBlog).toEqual(createdBlog);
-  });
-
-  it('should return 401 and not update blog with incorrect auth credentials', async () => {
-    const createdBlog = await createBlog(app);
-
-    const updatePayload = {
-      name: 'Updated blog',
-      description: 'updated description',
-      websiteUrl: 'https://updated-blog.dev',
-    };
-
-    await request(app)
-      .put(`${BLOGS_PATH}/${createdBlog.id}`)
-      .set('Authorization', incorrectAdminAuth)
-      .send(updatePayload)
-      .expect(HttpStatus.Unauthorized_401);
-
-    const foundBlog = await getBlogById(app, createdBlog.id);
-
-    expect(foundBlog).toEqual(createdBlog);
-  });
-
-  it('should return 404 when updating non-existing blog', async () => {
-    await request(app)
-      .put(`${BLOGS_PATH}/999`)
-      .set('Authorization', adminAuth)
-      .send({
-        name: 'Updated blog',
-        description: 'updated description',
-        websiteUrl: 'https://updated-blog.dev',
-      })
-      .expect(HttpStatus.NotFound_404);
-  });
-
-  it('should return 400 and validation errors for invalid body when updating blog', async () => {
-    const createdBlog = await createBlog(app);
-
-    const response = await request(app)
-      .put(`${BLOGS_PATH}/${createdBlog.id}`)
-      .set('Authorization', adminAuth)
-      .send({
-        name: '',
-        description: '',
-        websiteUrl: 'invalid-url',
-      })
-      .expect(HttpStatus.BadRequest_400);
-
-    expect(response.body).toEqual({
-      errorsMessages: [
-        {
-          field: 'name',
-          message: 'Length of name is not correct',
-        },
-        {
-          field: 'description',
-          message: 'Length of description is not correct',
-        },
-        {
-          field: 'websiteUrl',
-          message: 'websiteUrl is not correct',
-        },
-      ],
-    });
-
-    const foundBlog = await getBlogById(app, createdBlog.id);
-
-    expect(foundBlog).toEqual(createdBlog);
-  });
-
-  it('should delete existing blog', async () => {
+  it('DELETE -> "/blogs/:id": should delete blog by id; status 204; used additional methods: POST -> /blogs, GET -> /blogs/:id', async () => {
     const createdBlog = await createBlog(app);
 
     await deleteBlog(app, createdBlog.id);
@@ -201,27 +116,56 @@ describe('blogs e2e', () => {
       .get(`${BLOGS_PATH}/${createdBlog.id}`)
       .expect(HttpStatus.NotFound_404);
 
-    const listResponse = await request(app)
+    const response = await request(app)
       .get(BLOGS_PATH)
       .expect(HttpStatus.Ok_200);
 
-    expect(listResponse.body).toEqual([]);
+    expect(response.body).toEqual([]);
   });
 
-  it('should return 401 and not delete blog without auth', async () => {
-    const createdBlog = await createBlog(app);
+  it('PUT, DELETE, GET -> "/blogs/:id": should return error if :id from uri param not found; status 404', async () => {
+    const updatePayload = {
+      name: 'Updated blog',
+      description: 'updated description',
+      websiteUrl: 'https://updated-blog.dev',
+    };
 
     await request(app)
-      .delete(`${BLOGS_PATH}/${createdBlog.id}`)
-      .expect(HttpStatus.Unauthorized_401);
+      .get(`${BLOGS_PATH}/999`)
+      .expect(HttpStatus.NotFound_404);
 
-    const foundBlog = await getBlogById(app, createdBlog.id);
+    await request(app)
+      .put(`${BLOGS_PATH}/999`)
+      .set('Authorization', adminAuth)
+      .send(updatePayload)
+      .expect(HttpStatus.NotFound_404);
 
-    expect(foundBlog).toEqual(createdBlog);
+    await request(app)
+      .delete(`${BLOGS_PATH}/999`)
+      .set('Authorization', adminAuth)
+      .expect(HttpStatus.NotFound_404);
   });
 
-  it('should return 401 and not delete blog with incorrect auth credentials', async () => {
+  it('PUT, POST, DELETE -> "/blogs": should return error if auth credentials is incorrect; status 401', async () => {
     const createdBlog = await createBlog(app);
+
+    const updatePayload = {
+      name: 'Updated blog',
+      description: 'updated description',
+      websiteUrl: 'https://updated-blog.dev',
+    };
+
+    await request(app)
+      .post(BLOGS_PATH)
+      .set('Authorization', incorrectAdminAuth)
+      .send(getBlogDto())
+      .expect(HttpStatus.Unauthorized_401);
+
+    await request(app)
+      .put(`${BLOGS_PATH}/${createdBlog.id}`)
+      .set('Authorization', incorrectAdminAuth)
+      .send(updatePayload)
+      .expect(HttpStatus.Unauthorized_401);
 
     await request(app)
       .delete(`${BLOGS_PATH}/${createdBlog.id}`)
@@ -231,12 +175,5 @@ describe('blogs e2e', () => {
     const foundBlog = await getBlogById(app, createdBlog.id);
 
     expect(foundBlog).toEqual(createdBlog);
-  });
-
-  it('should return 404 when deleting non-existing blog', async () => {
-    await request(app)
-      .delete(`${BLOGS_PATH}/999`)
-      .set('Authorization', adminAuth)
-      .expect(HttpStatus.NotFound_404);
   });
 });

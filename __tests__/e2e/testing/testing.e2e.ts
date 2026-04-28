@@ -6,10 +6,20 @@ import { BLOGS_PATH, TESTING_PATH } from '../../../src/core/paths/paths';
 import { HttpStatus } from '../../../src/core/types/http-statuses';
 //@ts-ignore
 import {createBlog} from "../../utils/blogs/create-blog";
+import {runDB, stopDb} from "../../../src/db/mongo.db";
+import {SETTINGS} from "../../../src/core/settings/settings";
 
 describe('testing e2e', () => {
   const app = express();
   setupApp(app);
+
+  beforeAll(async () => {
+    await runDB(SETTINGS.MONGO_URL)
+  })
+
+  afterAll(async () => {
+    await stopDb()
+  })
 
   beforeEach(async () => {
     await request(app)

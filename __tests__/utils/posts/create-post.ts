@@ -4,14 +4,14 @@ import { POSTS_PATH } from '../../../src/core/paths/paths';
 import { HttpStatus } from '../../../src/core/types/http-statuses';
 import { generateBasicAuthToken } from '../generate-admin-auth-token';
 import { CreatePostDto } from "../../../src/posts/dto/createPostDto";
-import { Post } from "../../../src/posts/types/post";
 import { getPostDto } from "./get-post-dto";
+import {PostViewDto} from "../../../src/posts/dto/postViewDto";
 
 export async function createPost(
   app: Express,
   blogId: string,
   postDto?: Partial<CreatePostDto>,
-): Promise<Post> {
+): Promise<PostViewDto> {
 
   const testPostData: CreatePostDto = {
     ...getPostDto(blogId),

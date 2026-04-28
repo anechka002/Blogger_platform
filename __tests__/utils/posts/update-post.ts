@@ -11,9 +11,9 @@ export async function updatePost(
   postId: string,
   blogId: string,
   postDto?: Partial<CreatePostDto>,
-): Promise<void> {
+): Promise<CreatePostDto> {
 
-  const testPostData: CreatePostDto = {
+  const updatePayload: CreatePostDto = {
     ...getPostDto(blogId),
     ...postDto,
   };
@@ -21,6 +21,8 @@ export async function updatePost(
   await request(app)
     .put(`${POSTS_PATH}/${postId}`)
     .set('Authorization', generateBasicAuthToken())
-    .send(testPostData)
+    .send(updatePayload)
     .expect(HttpStatus.NoContent_204);
+
+  return updatePayload
 }

@@ -8,12 +8,23 @@ import { HttpStatus } from '../../../src/core/types/http-statuses';
 import { generateBasicAuthToken } from '../../utils/generate-admin-auth-token';
 import { clearDb } from '../../utils/clear-db';
 import { getBlogDto } from '../../utils/blogs/get-blog-dto';
+import {runDB, stopDb} from "../../../src/db/mongo.db";
+import {createBlog} from "../../utils/blogs/create-blog";
+import {getBlogById} from "../../utils/blogs/get-blog-by-id";
 
 describe('blogs body validation e2e', () => {
   const app = express();
   setupApp(app);
 
   const adminAuth = generateBasicAuthToken();
+
+  beforeAll(async () => {
+    await runDB('mongodb+srv://root:root@clustermongodb.98xltqo.mongodb.net/?appName=ClusterMongoDB');
+  });
+
+  afterAll(async () => {
+    await stopDb();
+  });
 
   beforeEach(async () => {
     await clearDb(app);
@@ -28,6 +39,77 @@ describe('blogs body validation e2e', () => {
 
     expect(response.body).toEqual([]);
   };
+
+
+  it('POST -> "/blogs": should return error if passed body is incorrect; status 400', async () => {
+    const response = await request(app)
+      .post(BLOGS_PATH)
+      .set('Authorization', adminAuth)
+      .send({
+        name: '',
+        description: '',
+        websiteUrl: 'invalid-url',
+      })
+      .expect(HttpStatus.BadRequest_400);
+
+    expect(response.body).toEqual({
+      errorsMessages: [
+        {
+          field: 'name',
+          message: 'Length of name is not correct',
+        },
+        {
+          field: 'description',
+          message: 'Length of description is not correct',
+        },
+        {
+          field: 'websiteUrl',
+          message: 'websiteUrl is not correct',
+        },
+      ],
+    });
+
+    const listResponse = await request(app)
+      .get(BLOGS_PATH)
+      .expect(HttpStatus.Ok_200);
+
+    expect(listResponse.body).toEqual([]);
+  });
+
+  it('PUT -> "/blogs/:id": should return error if passed body is incorrect; status 400; used additional methods: POST -> /blogs', async () => {
+    const createdBlog = await createBlog(app);
+
+    const response = await request(app)
+      .put(`${BLOGS_PATH}/${createdBlog.id}`)
+      .set('Authorization', adminAuth)
+      .send({
+        name: '',
+        description: '',
+        websiteUrl: 'invalid-url',
+      })
+      .expect(HttpStatus.BadRequest_400);
+
+    expect(response.body).toEqual({
+      errorsMessages: [
+        {
+          field: 'name',
+          message: 'Length of name is not correct',
+        },
+        {
+          field: 'description',
+          message: 'Length of description is not correct',
+        },
+        {
+          field: 'websiteUrl',
+          message: 'websiteUrl is not correct',
+        },
+      ],
+    });
+
+    const foundBlog = await getBlogById(app, createdBlog.id);
+
+    expect(foundBlog).toEqual(createdBlog);
+  });
 
   it('should return 400 and error for empty name', async () => {
     const response = await request(app)
