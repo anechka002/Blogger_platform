@@ -16,6 +16,9 @@ import {updatePost} from "../../utils/posts/update-post";
 import {deletePost} from "../../utils/posts/delete-post";
 import {expectPostNotFound} from "../../utils/posts/expect-post-not-found";
 import {getPosts} from "../../utils/posts/get-posts";
+import dotenv from 'dotenv'
+import {ObjectId} from "mongodb";
+dotenv.config()
 
 describe('posts e2e', () => {
   const app = express();
@@ -25,7 +28,7 @@ describe('posts e2e', () => {
   const incorrectAdminAuth = generateBasicAuthToken('admin', 'wrong-password');
 
   beforeAll(async () => {
-    await runDB('mongodb+srv://root:root@clustermongodb.98xltqo.mongodb.net/?appName=ClusterMongoDB');
+    await runDB(process.env.MONGO_URL!);
   });
 
   afterAll(async () => {
@@ -111,18 +114,18 @@ describe('posts e2e', () => {
 
   it('PUT, DELETE, GET -> "/posts/:id": should return error if :id from uri param not found; status 404', async () => {
     const createdBlog = await createBlog(app);
-    const notExistingPostId = '999';
+    const nonExistingId = new ObjectId().toString();
 
-    await expectPostNotFound(app, notExistingPostId);
+    await expectPostNotFound(app, nonExistingId);
 
     await request(app)
-      .put(`${POSTS_PATH}/${notExistingPostId}`)
+      .put(`${POSTS_PATH}/${nonExistingId}`)
       .set('Authorization', adminAuth)
       .send(getPostDto(createdBlog.id))
       .expect(HttpStatus.NotFound_404);
 
     await request(app)
-      .delete(`${POSTS_PATH}/${notExistingPostId}`)
+      .delete(`${POSTS_PATH}/${nonExistingId}`)
       .set('Authorization', adminAuth)
       .expect(HttpStatus.NotFound_404);
   });

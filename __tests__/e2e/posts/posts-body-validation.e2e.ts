@@ -12,6 +12,8 @@ import { createBlog } from "../../utils/blogs/create-blog";
 import {runDB, stopDb} from "../../../src/db/mongo.db";
 import {getPostById} from "../../utils/posts/get-post-by-id";
 import {createPost} from "../../utils/posts/create-post";
+import dotenv from 'dotenv'
+dotenv.config()
 
 describe('posts body validation e2e', () => {
   const app = express();
@@ -20,7 +22,7 @@ describe('posts body validation e2e', () => {
   const adminAuth = generateBasicAuthToken();
 
   beforeAll(async () => {
-    await runDB('mongodb+srv://root:root@clustermongodb.98xltqo.mongodb.net/?appName=ClusterMongoDB');
+    await runDB(process.env.MONGO_URL!);
   });
 
   afterAll(async () => {

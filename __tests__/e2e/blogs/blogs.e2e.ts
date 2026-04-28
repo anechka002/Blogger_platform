@@ -13,6 +13,9 @@ import { updateBlog } from '../../utils/blogs/update-blog';
 import { deleteBlog } from '../../utils/blogs/delete-blog';
 import { generateBasicAuthToken } from '../../utils/generate-admin-auth-token';
 import { runDB, stopDb } from '../../../src/db/mongo.db';
+import dotenv from 'dotenv'
+import {ObjectId} from "mongodb";
+dotenv.config()
 
 describe('blogs e2e', () => {
   const app = express();
@@ -22,7 +25,7 @@ describe('blogs e2e', () => {
   const incorrectAdminAuth = generateBasicAuthToken('admin', 'wrong-password');
 
   beforeAll(async () => {
-    await runDB('mongodb+srv://root:root@clustermongodb.98xltqo.mongodb.net/?appName=ClusterMongoDB');
+    await runDB(process.env.MONGO_URL!);
   });
 
   afterAll(async () => {
@@ -124,24 +127,26 @@ describe('blogs e2e', () => {
   });
 
   it('PUT, DELETE, GET -> "/blogs/:id": should return error if :id from uri param not found; status 404', async () => {
+    const nonExistingId = new ObjectId().toString();
+
     const updatePayload = {
       name: 'Updated blog',
       description: 'updated description',
       websiteUrl: 'https://updated-blog.dev',
     };
-
     await request(app)
-      .get(`${BLOGS_PATH}/999`)
+      .get(`${BLOGS_PATH}/${nonExistingId}`)
       .expect(HttpStatus.NotFound_404);
 
+
     await request(app)
-      .put(`${BLOGS_PATH}/999`)
+      .put(`${BLOGS_PATH}/${nonExistingId}`)
       .set('Authorization', adminAuth)
       .send(updatePayload)
       .expect(HttpStatus.NotFound_404);
 
     await request(app)
-      .delete(`${BLOGS_PATH}/999`)
+      .delete(`${BLOGS_PATH}/${nonExistingId}`)
       .set('Authorization', adminAuth)
       .expect(HttpStatus.NotFound_404);
   });
