@@ -28,6 +28,7 @@ const blogIdValidation = body('blogId')
   .trim()
   .isLength({ min: 1})
   .withMessage('blogId is required')
+  .bail()
   .custom((blogId: string) => {
     const blog = blogsRepository.findById(blogId);
 

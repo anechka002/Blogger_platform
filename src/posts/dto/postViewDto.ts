@@ -5,4 +5,5 @@ export type PostViewDto = {
   content: string,
   blogId: string,
   blogName: string,
+  createdAt: string,
 }

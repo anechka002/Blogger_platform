@@ -5,15 +5,19 @@ import {RequestWithParamsAndBody} from "../../../core/types/request-types";
 import {UpdateBlogDto} from "../../dto/updateBlogDto";
 import {URIParamsBlogIdDto} from "../../dto/URIParamsBlogIdDto";
 
-export const updateBlogHandler = (req: RequestWithParamsAndBody<URIParamsBlogIdDto, UpdateBlogDto>, res: Response)=> {
-  const id = req.params.id
-  const blog = blogsRepository.findById(id)
+export const updateBlogHandler = async (req: RequestWithParamsAndBody<URIParamsBlogIdDto, UpdateBlogDto>, res: Response)=> {
+  try {
+    const id = req.params.id
+    const blog = await blogsRepository.findById(id)
 
-  if (!blog) {
-    res.sendStatus(HttpStatus.NotFound_404)
-    return
+    if (!blog) {
+      res.sendStatus(HttpStatus.NotFound_404)
+      return
+    }
+
+    await blogsRepository.update(id, req.body)
+    res.sendStatus(HttpStatus.NoContent_204)
+  } catch (error: unknown) {
+    res.sendStatus(HttpStatus.InternalServerError_500)
   }
-
-  blogsRepository.update(id, req.body)
-  res.sendStatus(HttpStatus.NoContent_204)
 }

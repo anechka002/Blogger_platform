@@ -5,21 +5,29 @@ import {CreateBlogDto} from "../../dto/createBlogDto";
 import {RequestWithBody} from "../../../core/types/request-types";
 import {BlogViewDto} from "../../dto/blogViewDto";
 import {Blog} from "../../types/blog";
-import {db} from "../../../db/in-memory.db";
+import {mapToBlogViewModel} from "../mappers/map-to-blog-view-model.utils";
 
-export const createBlogHandler = (req: RequestWithBody<CreateBlogDto>, res: Response<BlogViewDto>)=> {
+export const createBlogHandler = async (req: RequestWithBody<CreateBlogDto>, res: Response<BlogViewDto>)=> {
 
-  const newId = db.blogs.length
-    ? Number(db.blogs[db.blogs.length - 1].id) + 1
-    : 1
+  try {
+    const newBlog: Blog = {
+      name: req.body.name,
+      description: req.body.description,
+      websiteUrl: req.body.websiteUrl,
+      createdAt: new Date(),
+      isMembership: false
+    }
 
-  const newBlog: Blog = {
-    id: String(newId),
-    name: req.body.name,
-    description: req.body.description,
-    websiteUrl: req.body.websiteUrl
+    const createdBlog = await blogsRepository.create(newBlog)
+
+    if (!createdBlog) {
+      res.sendStatus(HttpStatus.InternalServerError_500)
+      return
+    }
+
+    const blogViewModel = mapToBlogViewModel(createdBlog)
+    res.status(HttpStatus.Created_201).send(blogViewModel)
+  } catch (error: unknown) {
+    res.sendStatus(HttpStatus.InternalServerError_500)
   }
-
-  blogsRepository.create(newBlog)
-  res.status(HttpStatus.Created_201).send(newBlog)
 }

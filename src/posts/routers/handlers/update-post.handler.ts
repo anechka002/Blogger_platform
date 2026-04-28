@@ -7,30 +7,34 @@ import {UpdatePostDto} from "../../dto/updatePostDto";
 import {blogsRepository} from "../../../blogs/repositories/blogs.repository";
 import {createValidationErrorResponse} from "../../../core/utils/error.utils";
 
-export const updatePostHandler = (req: RequestWithParamsAndBody<URIParamsPostIdDto, UpdatePostDto>, res: Response)=> {
-  const blog = blogsRepository.findById(req.body.blogId)
+export const updatePostHandler = async (req: RequestWithParamsAndBody<URIParamsPostIdDto, UpdatePostDto>, res: Response)=> {
+  try {
+    const blog = await blogsRepository.findById(req.body.blogId)
 
-  if (!blog) {
-    res
-      .status(HttpStatus.BadRequest_400)
-      .json(createValidationErrorResponse([
-          {
-            field: 'blogId',
-            message: 'blog not found',
-          },
-        ])
-      );
-    return;
+    if (!blog) {
+      res
+        .status(HttpStatus.BadRequest_400)
+        .json(createValidationErrorResponse([
+            {
+              field: 'blogId',
+              message: 'blog not found',
+            },
+          ])
+        );
+      return;
+    }
+
+    const id = req.params.id
+    const post = await postsRepository.findById(id)
+
+    if (!post) {
+      res.sendStatus(HttpStatus.NotFound_404)
+      return
+    }
+
+    await postsRepository.update(id, req.body, blog.name)
+    res.sendStatus(HttpStatus.NoContent_204)
+  } catch (error: unknown) {
+    res.sendStatus(HttpStatus.InternalServerError_500)
   }
-
-  const id = req.params.id
-  const post = postsRepository.findById(id)
-
-  if (!post) {
-    res.sendStatus(HttpStatus.NotFound_404)
-    return
-  }
-
-  postsRepository.update(id, req.body, blog.name)
-  res.sendStatus(HttpStatus.NoContent_204)
 }

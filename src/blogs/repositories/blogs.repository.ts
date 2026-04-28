@@ -1,42 +1,58 @@
-import { db } from "../../db/in-memory.db";
 import {Blog} from "../types/blog";
 import {UpdateBlogDto} from "../dto/updateBlogDto";
+import {blogCollection} from "../../db/mongo.db";
+import { ObjectId, WithId } from 'mongodb';
 
 export const blogsRepository = {
   // Найти все блоги
-  findAll(): Blog[] {
-    return db.blogs;
+  async findAll(): Promise<WithId<Blog>[]> {
+    return await blogCollection.find({}).toArray();
   },
 
   // Найти блог по ID
-  findById(id: string): Blog | null {
-    return db.blogs.find((b) => b.id === id) ?? null;
+  async findById(id: string): Promise<WithId<Blog> | null> {
+    if(!ObjectId.isValid(id)) {
+      return null
+    }
+    return await blogCollection.findOne({_id: new ObjectId(id)});
   },
 
   // Создать новый блог
-  create(blog: Blog): Blog {
-    db.blogs.push(blog);
-    return blog;
+  async create(blog: Blog): Promise<WithId<Blog>| null> {
+    const insertResult = await blogCollection.insertOne(blog);
+
+    return await blogCollection.findOne({
+      _id: insertResult.insertedId,
+    })
   },
 
   // Обновить данные бдога
-  update(id: string, dto: UpdateBlogDto): boolean {
-    const blog = db.blogs.find((b) => b.id === id);
-    if (!blog) return false;
+  async update(id: string, dto: UpdateBlogDto): Promise<boolean> {
+    const updateResult = await blogCollection.updateOne(
+      {
+        _id: new ObjectId(id),
+      },
+      {
+        $set: {
+          name: dto.name,
+          description: dto.description,
+          websiteUrl: dto.websiteUrl,
+        }
+      }
+    );
 
-    blog.name = dto.name;
-    blog.description = dto.description;
-    blog.websiteUrl = dto.websiteUrl;
-
+    if (updateResult.matchedCount < 1) {
+      throw new Error("Blog not exist");
+    }
     return true
   },
 
   // Удалить блог
-  delete(id: string): void {
-    const index = db.blogs.findIndex((b) => b.id === id);
-    if (index === -1) return;
-
-    db.blogs.splice(index, 1);
+  async delete(id: string): Promise<void> {
+    const deletedResult = await blogCollection.deleteOne({_id: new ObjectId(id)});
+    if (deletedResult.deletedCount < 1) {
+      throw new Error("Blog not exist");
+    }
     return
   },
 

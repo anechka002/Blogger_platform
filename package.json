@@ -10,7 +10,7 @@
     "dev": "nodemon --inspect dist/src/index.js",
     "jest": "jest -i --config jest.config.js",
     "jest:coverage": "jest -i --coverage",
-    "test:e2e": "jest --config ./__tests__/jest-e2e.config.js",
+    "test:e2e": "jest --config ./__tests__/jest-e2e.config.js --runInBand",
     "lint": "eslint --fix .",
     "format": "prettier --write ."
   },
@@ -21,6 +21,7 @@
   "dependencies": {
     "express": "^5.2.1",
     "express-validator": "^7.3.2",
+    "mongodb": "^7.2.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
