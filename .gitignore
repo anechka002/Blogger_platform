@@ -2,3 +2,8 @@ node_modules
 dist
 .idea
 /.idea
+.env
+.env.*
+!.env.example
+
+#IxpPPVB4v9UahUlg

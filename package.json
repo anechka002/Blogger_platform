@@ -1,5 +1,5 @@
 {
-  "name": "Blogger_platform",
+  "name": "blogger-platform",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -19,6 +19,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.8.1",
   "dependencies": {
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-validator": "^7.3.2",
     "mongodb": "^7.2.0",
