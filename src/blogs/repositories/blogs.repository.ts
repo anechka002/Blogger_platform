@@ -41,10 +41,7 @@ export const blogsRepository = {
       }
     );
 
-    if (updateResult.matchedCount < 1) {
-      throw new Error("Blog not exist");
-    }
-    return true
+    return updateResult.matchedCount === 1
   },
 
   // Удалить блог
