@@ -13,6 +13,11 @@ export const setupApp = (app: Express) => {
     res.status(200).send("Hello world!");
   });
 
+  // app.use((req, res, next) => {
+  //   console.log(req.method, req.path)
+  //   next()
+  // })
+
   // Подключаем роутеры
   app.use(BLOGS_PATH, blogsRouter);
   app.use(POSTS_PATH, postsRouter);
