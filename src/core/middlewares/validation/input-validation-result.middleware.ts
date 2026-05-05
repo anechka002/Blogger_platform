@@ -3,15 +3,16 @@ import {
   ValidationError,
   validationResult
 } from "express-validator";
-import {ValidationErrorType} from "../../types/validation-errors.ts";
-import {Request, Response, NextFunction} from "express";
+import {NextFunction, Request, Response} from "express";
 import {HttpStatus} from "../../types/http-statuses";
+import {ValidationErrorType} from "../../types/validation-error";
+import {createErrorMessages} from "../../errors/create-error-message";
 
-const formatErrors = (error: ValidationError): ValidationErrorType => {
+const formaValidationError = (error: ValidationError): ValidationErrorType => {
   const expressError = error as unknown as FieldValidationError;
 
   return {
-    field: expressError.path, // Поле с ошибкой
+    field: expressError.path,
     message: expressError.msg, // Сообщение ошибки
   };
 };
@@ -22,11 +23,11 @@ export const inputValidationResultMiddleware = (
   next: NextFunction,
 ) => {
   const errors = validationResult(req)
-    .formatWith(formatErrors)
+    .formatWith(formaValidationError)
     .array({ onlyFirstError: true });
 
   if (errors.length > 0) {
-    res.status(HttpStatus.BadRequest_400).json({ errorsMessages: errors });
+    res.status(HttpStatus.BadRequest_400).json(createErrorMessages(errors));
     return;
   }
 
