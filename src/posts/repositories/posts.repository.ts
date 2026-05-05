@@ -11,17 +11,23 @@ export const postsRepository = {
 
   // Найти пост по ID
   async findById(id: string): Promise<WithId<Post> | null> {
-    if(!ObjectId.isValid(id)) {
-      return null
-    }
     return await postCollection.findOne({_id: new ObjectId(id)});
   },
 
+  // // Найти пост по ID или завершить с ошибкой
+  // async findByIdOrFail(id: string): Promise<PostViewDto> {
+  //   const result = await postCollection.findOne({_id: new ObjectId(id)});
+  //   if(!result) {
+  //     throw new RepositoryNotFoundError()
+  //   }
+  //   return mapToPostViewModel(result)
+  // },
+
   // Создать новый пост
-  async create(post: Post): Promise<WithId<Post>| null> {
+  async create(post: Post): Promise<string> {
     const insertResult = await postCollection.insertOne(post);
 
-    return await postCollection.findOne({_id: insertResult.insertedId});
+    return insertResult.insertedId.toString();
   },
 
   // Обновить данные поста
