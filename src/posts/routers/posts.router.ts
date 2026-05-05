@@ -1,5 +1,4 @@
 import { Router } from "express";
-import {createPostHandler} from "./handlers/create-post.handler";
 import {
   inputValidationResultMiddleware
 } from "../../core/middlewares/validation/input-validation-result.middleware";
@@ -15,6 +14,7 @@ import {
   idValidationMiddleware
 } from "../../core/middlewares/validation/params-id.validation-middleware";
 import {deletePostHandler} from "./handlers/delete-post.handler";
+import {createPostHandler} from "./handlers/create-post.handler";
 import {updatePostHandler} from "./handlers/update-post.handler";
 
 

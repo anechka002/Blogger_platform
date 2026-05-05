@@ -18,12 +18,11 @@ export function errorsHandler(error: unknown, res: Response): void {
   }
 
   if (error instanceof DomainError) {
-
     if (error.code === DomainErrorCode.BlogHasPosts) {
       console.log('Business rule failed:', error.code)
     }
 
-    res.status(HttpStatus.Conflict_409).send(
+    res.status(HttpStatus.BadRequest_400).send(
       createErrorMessages([
         {
           message: error.message,
