@@ -27,8 +27,8 @@ postsRouter
 
   .post('/', superAdminGuardMiddleware, postInputDtoValidation, inputValidationResultMiddleware, createPostHandler)
 
-  .get('/:id', idValidationMiddleware, inputValidationResultMiddleware, getPostHandler)
+  .get('/:id', idValidationMiddleware(), inputValidationResultMiddleware, getPostHandler)
 
-  .put('/:id', superAdminGuardMiddleware, idValidationMiddleware, postInputDtoValidation, inputValidationResultMiddleware, updatePostHandler)
+  .put('/:id', superAdminGuardMiddleware, idValidationMiddleware(), postInputDtoValidation, inputValidationResultMiddleware, updatePostHandler)
 
-  .delete('/:id', superAdminGuardMiddleware, idValidationMiddleware, inputValidationResultMiddleware, deletePostHandler)
+  .delete('/:id', superAdminGuardMiddleware, idValidationMiddleware(), inputValidationResultMiddleware, deletePostHandler)

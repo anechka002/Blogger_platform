@@ -2,14 +2,27 @@ import {Blog} from "../types/blog";
 import {UpdateBlogDto} from "../dto/updateBlogDto";
 import {blogCollection} from "../../db/mongo.db";
 import { ObjectId, WithId } from 'mongodb';
-import {
-  RepositoryNotFoundError
-} from "../../core/errors/repositiry-not-found.error";
+import {BlogQueryInput} from "../routers/input/blog-query-input";
 
 export const blogsRepository = {
+
   // Найти все блоги
-  async findAll(): Promise<WithId<Blog>[]> {
-    return await blogCollection.find({}).toArray();
+  async findMany(queryDto: BlogQueryInput): Promise<{items: WithId<Blog>[], totalCount: number}>  {
+    const { pageNumber, pageSize, sortBy, sortDirection, searchNameTerm} = queryDto;
+
+    const filter = searchNameTerm ? {name: {$regex: searchNameTerm, $options: "i"}}: {};
+    const skip = (pageNumber - 1) * pageSize
+
+    const items = await blogCollection
+      .find(filter)
+      .sort({[sortBy]: sortDirection})
+      .skip(skip)
+      .limit(pageSize)
+      .toArray();
+
+    const totalCount = await blogCollection.countDocuments(filter)
+
+    return {items, totalCount}
   },
 
   // Найти блог по ID
