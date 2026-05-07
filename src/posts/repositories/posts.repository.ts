@@ -4,6 +4,7 @@ import {ObjectId, WithId} from "mongodb";
 import {BlogPostsQueryInput} from "../../blogs/routers/input/blog-posts-query.input";
 import {postCollection} from "../../db/mongo.db";
 import {calculateSkip} from "../../core/utils/calculateSkip";
+import {PostQueryInput} from "../routers/input/post-query.input";
 
 export const postsRepository = {
 
@@ -12,6 +13,25 @@ export const postsRepository = {
     const { pageNumber, pageSize, sortBy, sortDirection} = queryDto;
 
     const filter = {blogId};
+    const skip = calculateSkip(pageNumber, pageSize);
+
+    const items = await postCollection
+      .find(filter)
+      .sort({[sortBy]: sortDirection})
+      .skip(skip)
+      .limit(pageSize)
+      .toArray();
+
+    const totalCount = await postCollection.countDocuments(filter)
+
+    return {items, totalCount}
+  },
+
+  // Найти все посты с пагинацией и сортировкой
+  async findMany(queryDto: PostQueryInput): Promise<{items: WithId<Post>[], totalCount: number}> {
+    const { pageNumber, pageSize, sortBy, sortDirection } = queryDto;
+
+    const filter = {}
     const skip = calculateSkip(pageNumber, pageSize);
 
     const items = await postCollection

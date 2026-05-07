@@ -7,7 +7,7 @@ import {calculateSkip} from "../../core/utils/calculateSkip";
 
 export const blogsRepository = {
 
-  // Найти все блоги
+  // Найти все блоги с пагинацией и сортировкой
   async findMany(queryDto: BlogQueryInput): Promise<{items: WithId<Blog>[], totalCount: number}>  {
     const { pageNumber, pageSize, sortBy, sortDirection, searchNameTerm} = queryDto;
 

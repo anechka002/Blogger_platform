@@ -16,14 +16,17 @@ import {
 import {deletePostHandler} from "./handlers/delete-post.handler";
 import {createPostHandler} from "./handlers/create-post.handler";
 import {updatePostHandler} from "./handlers/update-post.handler";
-
+import {
+  paginationAndSortingValidation
+} from "../../core/middlewares/validation/query-pagination-sorting.validation-middleware";
+import {PostSortField} from "./input/post-sort-field";
 
 export const postsRouter = Router({});
 
 // blogsRouter.use(superAdminGuardMiddleware); // для всех роутеров
 
 postsRouter
-  .get('/', getPostListHandler)
+  .get('/', paginationAndSortingValidation(PostSortField), inputValidationResultMiddleware, getPostListHandler)
 
   .post('/', superAdminGuardMiddleware, postInputDtoValidation, inputValidationResultMiddleware, createPostHandler)
 
