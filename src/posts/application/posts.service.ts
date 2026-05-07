@@ -36,7 +36,7 @@ export const postsService = {
       createdAt: new Date(),
     }
 
-    return postsRepository.create(newPost)
+    return await postsRepository.create(newPost)
   },
 
   // Обновить данные поста
@@ -53,7 +53,7 @@ export const postsService = {
       throw new DomainError('Blog does not exist', 'blogId')
     }
 
-    return postsRepository.update(id, dto, foundBlog.name)
+    return await postsRepository.update(id, dto, foundBlog.name)
   },
 
   // Удалить пост
@@ -64,6 +64,6 @@ export const postsService = {
       throw new RepositoryNotFoundError('Post not found')
     }
 
-    return postsRepository.delete(id)
+    return await postsRepository.delete(id)
   },
 };
