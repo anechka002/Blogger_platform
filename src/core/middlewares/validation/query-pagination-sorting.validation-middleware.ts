@@ -29,5 +29,10 @@ export function paginationAndSortingValidation<T extends string>(sortFieldsEnum:
       .default(DEFAULT_SORT_DIRECTION)
       .isIn(Object.values(SortDirectionEnum))
       .withMessage(`Sort direction must be one of: ${Object.values(SortDirectionEnum).join(', ')}`),
+
+    query('searchNameTerm')
+      .optional()
+      .isString()
+      .trim(),
   ]
 }

@@ -8,17 +8,21 @@ import {blogsQueryService} from "../../application/blogs-query.service";
 import {PaginationOutput} from "../../../core/types/pagination.output";
 import {PostViewDto} from "../../../posts/dto/postViewDto";
 import {URIParamsBlogIdPostsDto} from "../../dto/URIParamsBlogIdPostsDto";
-import {
-  getPaginationAndSortingFromQuery
-} from "../../../core/utils/get-pagination-and-sorting-from-query";
-import {PostSortField} from "../../../posts/routers/input/post-sort-field";
+import {matchedData} from "express-validator";
+import {BlogPostsQueryInput} from "../input/blog-posts-query.input";
 
 export const getBlogPostsHandler = async (req: RequestWithParams<URIParamsBlogIdPostsDto>, res: Response<PaginationOutput<PostViewDto>>) => {
   try {
     const blogId = req.params.blogId;
-    const queryInput = getPaginationAndSortingFromQuery(req.query, PostSortField.CreatedAt)
 
-    const result = await blogsQueryService.findPostsByBlogId(blogId,queryInput)
+    const queryInput = matchedData<BlogPostsQueryInput>(req, {
+      locations: ["query"],
+      includeOptionals: true,
+    });
+
+    // console.log(queryInput);
+
+    const result = await blogsQueryService.findPostsByBlogId(blogId, queryInput)
 
     res.status(HttpStatus.Ok_200).send(result)
   } catch(error: unknown) {

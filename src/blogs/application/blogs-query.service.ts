@@ -7,7 +7,7 @@ import {PostViewDto} from "../../posts/dto/postViewDto";
 import {PaginationOutput} from "../../core/types/pagination.output";
 import {postsRepository} from "../../posts/repositories/posts.repository";
 import {mapToPostListPaginationOutput} from "../../posts/routers/mappers/map-to-post-list-pagination-output.util";
-import {BlogQueryInput} from "../routers/input/blog-query-input";
+import {BlogQueryInput} from "../routers/input/blog-query.input";
 
 export const blogsQueryService = {
 

@@ -3,6 +3,7 @@ import {UpdatePostDto} from "../dto/updatePostDto";
 import {ObjectId, WithId} from "mongodb";
 import {BlogPostsQueryInput} from "../../blogs/routers/input/blog-posts-query.input";
 import {postCollection} from "../../db/mongo.db";
+import {calculateSkip} from "../../core/utils/calculateSkip";
 
 export const postsRepository = {
 
@@ -11,7 +12,7 @@ export const postsRepository = {
     const { pageNumber, pageSize, sortBy, sortDirection} = queryDto;
 
     const filter = {blogId};
-    const skip = (pageNumber - 1) * pageSize
+    const skip = calculateSkip(pageNumber, pageSize);
 
     const items = await postCollection
       .find(filter)

@@ -2,7 +2,8 @@ import {Blog} from "../types/blog";
 import {UpdateBlogDto} from "../dto/updateBlogDto";
 import {blogCollection} from "../../db/mongo.db";
 import { ObjectId, WithId } from 'mongodb';
-import {BlogQueryInput} from "../routers/input/blog-query-input";
+import {BlogQueryInput} from "../routers/input/blog-query.input";
+import {calculateSkip} from "../../core/utils/calculateSkip";
 
 export const blogsRepository = {
 
@@ -11,7 +12,7 @@ export const blogsRepository = {
     const { pageNumber, pageSize, sortBy, sortDirection, searchNameTerm} = queryDto;
 
     const filter = searchNameTerm ? {name: {$regex: searchNameTerm, $options: "i"}}: {};
-    const skip = (pageNumber - 1) * pageSize
+    const skip = calculateSkip(pageNumber, pageSize);
 
     const items = await blogCollection
       .find(filter)
