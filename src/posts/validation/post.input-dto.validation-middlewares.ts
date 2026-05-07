@@ -29,8 +29,11 @@ const blogIdValidation = body('blogId')
   .isLength({ min: 1})
   .withMessage('blogId is required')
   .bail()
-  .custom((blogId: string) => {
-    const blog = blogsRepository.findById(blogId);
+  .isMongoId()
+  .withMessage('blogId must be valid Mongo id')
+  .bail()
+  .custom(async(blogId: string) => {
+    const blog = await blogsRepository.findById(blogId);
 
     if(!blog) {
       throw new Error('blog not found');
@@ -45,3 +48,9 @@ export const postInputDtoValidation = [
   contentValidation,
   blogIdValidation,
 ];
+
+export const blogPostInputDtoValidation = [
+  titleValidation,
+  shortDescriptionValidation,
+  contentValidation,
+]

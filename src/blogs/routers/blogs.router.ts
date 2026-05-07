@@ -19,13 +19,20 @@ import {
 import {paginationAndSortingValidation} from "../../core/middlewares/validation/query-pagination-sorting.validation-middleware";
 import {PostSortField} from "../../posts/routers/input/post-sort-field";
 import {getBlogPostsHandler} from "./handlers/get-blog-posts.handler";
+import {BlogSortField} from "./input/blog-sort-field";
+import {
+  createPostForBlogHandler
+} from "./handlers/create-post-for-blog.handler";
+import {
+  blogPostInputDtoValidation
+} from "../../posts/validation/post.input-dto.validation-middlewares";
 
 export const blogsRouter = Router({});
 
 // blogsRouter.use(superAdminGuardMiddleware); // для всех роутеров
 
 blogsRouter
-  .get('/', getBlogListHandler)
+  .get('/', paginationAndSortingValidation(BlogSortField), inputValidationResultMiddleware, getBlogListHandler)
 
   .post('/', superAdminGuardMiddleware, blogInputDtoValidation, inputValidationResultMiddleware, createBlogHandler)
 
@@ -37,7 +44,4 @@ blogsRouter
 
   .get('/:blogId/posts', idValidationMiddleware('blogId'), paginationAndSortingValidation(PostSortField), inputValidationResultMiddleware, getBlogPostsHandler)
 
-// const sanitizedQuery = matchedData<BlogQueryInput>(req, {
-//   locations: ["query"],
-//   includeOptionals: true,
-// });
+  .post('/:blogId/posts', superAdminGuardMiddleware, idValidationMiddleware('blogId'), blogPostInputDtoValidation, inputValidationResultMiddleware, createPostForBlogHandler)
