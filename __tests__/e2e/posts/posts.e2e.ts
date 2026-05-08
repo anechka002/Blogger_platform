@@ -67,7 +67,7 @@ describe('posts e2e', () => {
     expect(foundPost).toEqual(createdPost);
   });
 
-  it('GET -> "/posts": should return status 200; content: posts array; used additional methods: POST -> /blogs, POST -> /posts', async () => {
+  it('GET -> "/posts": should return status 200; content: posts pagination with items; used additional methods: POST -> /blogs, POST -> /posts', async () => {
     const createdBlog = await createBlog(app);
     const createdPost = await createPost(app, createdBlog.id);
 
@@ -164,6 +164,5 @@ describe('posts e2e', () => {
   });
 
 });
-
 
 
