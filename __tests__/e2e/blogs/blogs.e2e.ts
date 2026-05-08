@@ -43,7 +43,7 @@ describe('blogs e2e', () => {
       .get(BLOGS_PATH)
       .expect(HttpStatus.Ok_200);
 
-    expect(blogsBeforeClear.body).toHaveLength(1);
+    expect(blogsBeforeClear.body.items).toHaveLength(1);
 
     await request(app)
       .delete(`${TESTING_PATH}/all-data`)
@@ -53,7 +53,7 @@ describe('blogs e2e', () => {
       .get(BLOGS_PATH)
       .expect(HttpStatus.Ok_200);
 
-    expect(blogsAfterClear.body).toEqual([]);
+    expect(blogsAfterClear.body.items).toEqual([]);
   });
 
   it('POST -> "/blogs": should create new blog; status 201; content: created blog; used additional methods: GET -> /blogs/:id', async () => {
@@ -86,7 +86,7 @@ describe('blogs e2e', () => {
       .get(BLOGS_PATH)
       .expect(HttpStatus.Ok_200);
 
-    expect(response.body).toEqual([createdBlog]);
+    expect(response.body.items).toEqual([createdBlog]);
   });
 
   it('PUT -> "/blogs/:id": should update blog by id; status 204; used additional methods: POST -> /blogs, GET -> /blogs/:id', async () => {
@@ -123,7 +123,7 @@ describe('blogs e2e', () => {
       .get(BLOGS_PATH)
       .expect(HttpStatus.Ok_200);
 
-    expect(response.body).toEqual([]);
+    expect(response.body.items).toEqual([]);
   });
 
   it('PUT, DELETE, GET -> "/blogs/:id": should return error if :id from uri param not found; status 404', async () => {

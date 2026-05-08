@@ -9,5 +9,5 @@ export async function getPosts(app: Express): Promise<Post[]> {
     .get(POSTS_PATH)
     .expect(HttpStatus.Ok_200);
 
-  return response.body;
+  return response.body.items;
 }

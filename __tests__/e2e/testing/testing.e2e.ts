@@ -34,7 +34,7 @@ describe('testing e2e', () => {
       .get(BLOGS_PATH)
       .expect(HttpStatus.Ok_200);
 
-    expect(blogsBeforeClear.body).toHaveLength(1);
+    expect(blogsBeforeClear.body.items).toHaveLength(1);
 
     await request(app)
       .delete(`${TESTING_PATH}/all-data`)
@@ -44,6 +44,6 @@ describe('testing e2e', () => {
       .get(BLOGS_PATH)
       .expect(HttpStatus.Ok_200);
 
-    expect(blogsAfterClear.body).toEqual([]);
+    expect(blogsAfterClear.body.items).toHaveLength(0);
   });
 });

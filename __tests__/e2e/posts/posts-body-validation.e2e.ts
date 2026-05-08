@@ -43,7 +43,7 @@ describe('posts body validation e2e', () => {
       .get(POSTS_PATH)
       .expect(HttpStatus.Ok_200);
 
-    expect(response.body).toEqual([]);
+    expect(response.body.items).toEqual([]);
   };
 
   it(`❌ should return 401 when creating post without auth`, async () => {
@@ -91,7 +91,7 @@ describe('posts body validation e2e', () => {
       .get(POSTS_PATH)
       .expect(HttpStatus.Ok_200);
 
-    expect(postsResponse.body).toEqual([]);
+    expect(postsResponse.body.items).toEqual([]);
   });
 
   it(`PUT -> "/posts": ❌ should return 400 when put body is incorrect` , async () => {
@@ -383,7 +383,7 @@ describe('posts body validation e2e', () => {
       .set('Authorization', adminAuth)
       .send({
         ...validPostDto,
-        blogId: 'non-existing-blog-id',
+        blogId: '000000000000000000000000',
       })
       .expect(HttpStatus.BadRequest_400);
 

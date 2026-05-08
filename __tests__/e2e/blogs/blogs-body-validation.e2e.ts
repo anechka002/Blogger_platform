@@ -39,7 +39,7 @@ describe('blogs body validation e2e', () => {
       .get(BLOGS_PATH)
       .expect(HttpStatus.Ok_200);
 
-    expect(response.body).toEqual([]);
+    expect(response.body.items).toEqual([]);
   };
 
 
@@ -75,7 +75,7 @@ describe('blogs body validation e2e', () => {
       .get(BLOGS_PATH)
       .expect(HttpStatus.Ok_200);
 
-    expect(listResponse.body).toEqual([]);
+    expect(listResponse.body.items).toEqual([]);
   });
 
   it('PUT -> "/blogs/:id": should return error if passed body is incorrect; status 400; used additional methods: POST -> /blogs', async () => {
