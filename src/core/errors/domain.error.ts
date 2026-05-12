@@ -1,10 +1,12 @@
 export class DomainError extends Error {
-  constructor(
-    message: string,
-    public readonly source?: string,
-    public readonly code?: string, // можно использовать внутри backend
-  ) {
+  public readonly source?: string
+  public readonly code?: string
+
+  constructor(message: string, source?: string, code?: string) {
     super(message)
-    this.name = 'DomainError';
+
+    this.name = 'DomainError'
+    this.source = source
+    this.code = code
   }
 }
