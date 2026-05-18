@@ -4,7 +4,7 @@ import {SortDirectionEnum} from "../../types/sort-direction";
 // Дефолтные значения
 const DEFAULT_PAGE_NUMBER = 1;
 const DEFAULT_PAGE_SIZE = 10;
-const DEFAULT_SORT_DIRECTION = SortDirectionEnum.Desc;
+const DEFAULT_SORT_DIRECTION = SortDirectionEnum.Asc;
 
 export function paginationAndSortingValidation<T extends string>(sortFieldsEnum: Record<string, T>) {
   return [
