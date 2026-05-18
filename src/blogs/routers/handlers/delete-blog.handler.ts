@@ -9,11 +9,6 @@ export const deleteBlogHandler = async (req: RequestWithParams<URIParamsBlogIdDt
   try {
     const id = req.params.id
 
-    // if (!isDeleted) {
-    //   res.sendStatus(HttpStatus.NotFound_404)
-    //   return
-    // }
-
     await blogsService.delete(id)
 
     res.sendStatus(HttpStatus.NoContent_204)

@@ -4,43 +4,31 @@ import {blogCollection} from "../../db/mongo.db";
 import { ObjectId, WithId } from 'mongodb';
 import {BlogQueryInput} from "../routers/input/blog-query.input";
 import {calculateSkip} from "../../core/utils/calculateSkip";
+import {PaginationOutput} from "../../core/types/pagination.output";
+import {BlogViewDto} from "../dto/blogViewDto";
+import {
+  mapToBlogViewModel
+} from "../routers/mappers/map-to-blog-view-model.utils";
+import {
+  RepositoryNotFoundError
+} from "../../core/errors/repositiry-not-found.error";
 
 export const blogsRepository = {
-
-  // Найти все блоги с пагинацией и сортировкой
-  async findMany(queryDto: BlogQueryInput): Promise<{items: WithId<Blog>[], totalCount: number}>  {
-    const { pageNumber, pageSize, sortBy, sortDirection, searchNameTerm} = queryDto;
-
-    const filter = searchNameTerm ? {name: {$regex: searchNameTerm, $options: "i"}}: {};
-    const skip = calculateSkip(pageNumber, pageSize);
-
-    const items = await blogCollection
-      .find(filter)
-      .sort({[sortBy]: sortDirection})
-      .skip(skip)
-      .limit(pageSize)
-      .toArray();
-
-    const totalCount = await blogCollection.countDocuments(filter)
-
-    return {items, totalCount}
-  },
-
   // Найти блог по ID
-  async findById(id: string): Promise<WithId<Blog> | null> {
-    if(!ObjectId.isValid(id)) {
-      return null
-    }
-    return await blogCollection.findOne({_id: new ObjectId(id)});
+  async findById(id: string) {
+    return blogCollection.findOne({ _id: new ObjectId(id) })
   },
 
-  // async findByIdOrFail(id: string): Promise<WithId<Blog>> {
-  //   const result = await blogCollection.findOne({_id: new ObjectId(id)});
-  //   if (!result) {
-  //     throw new RepositoryNotFoundError('No blog found with id ' + id);
-  //   }
-  //   return result
-  // },
+  // Найти блог по ID или завершить с ошибкой
+  async findByIdOrFail(id: string): Promise<WithId<Blog> | null> {
+    const foundBlog = await blogCollection.findOne({_id: new ObjectId(id)});
+
+    if(!foundBlog) {
+      throw new RepositoryNotFoundError('No blog found with id ' + id);
+    }
+
+    return foundBlog
+  },
 
   // Создать новый блог
   async create(blog: Blog): Promise<string> {

@@ -4,12 +4,12 @@ import {
 } from "../../../core/types/request-types";
 import {HttpStatus} from "../../../core/types/http-statuses";
 import {errorsHandler} from "../../../core/errors/errors.handler";
-import {blogsQueryService} from "../../application/blogs-query.service";
 import {PaginationOutput} from "../../../core/types/pagination.output";
 import {PostViewDto} from "../../../posts/dto/postViewDto";
 import {URIParamsBlogIdPostsDto} from "../../dto/URIParamsBlogIdPostsDto";
 import {matchedData} from "express-validator";
 import {BlogPostsQueryInput} from "../input/blog-posts-query.input";
+import {blogsService} from "../../application/blogs.service";
 
 export const getBlogPostsHandler = async (req: RequestWithParams<URIParamsBlogIdPostsDto>, res: Response<PaginationOutput<PostViewDto>>) => {
   try {
@@ -22,7 +22,7 @@ export const getBlogPostsHandler = async (req: RequestWithParams<URIParamsBlogId
 
     // console.log(queryInput);
 
-    const result = await blogsQueryService.findPostsByBlogId(blogId, queryInput)
+    const result = await blogsService.findPostsByBlogId(blogId, queryInput)
 
     res.status(HttpStatus.Ok_200).send(result)
   } catch(error: unknown) {

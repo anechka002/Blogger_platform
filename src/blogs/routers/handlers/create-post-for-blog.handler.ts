@@ -9,15 +9,15 @@ import {errorsHandler} from "../../../core/errors/errors.handler";
 import {blogsService} from "../../application/blogs.service";
 import {HttpStatus} from "../../../core/types/http-statuses";
 import {
-  postsQueryService
-} from "../../../posts/application/posts-query.service";
+  postsQueryRepository
+} from "../../../posts/repositories/posts.query.repository";
 
 export const createPostForBlogHandler = async(req: RequestWithParamsAndBody<URIParamsBlogIdPostsDto, CreatePostForBlogDto>, res: Response<PostViewDto>) => {
   try {
     const blogId = req.params.blogId
 
     const createdPostId = await blogsService.createPostForBlog(blogId, req.body)
-    const postViewModel = await postsQueryService.findByIdOrFail(createdPostId)
+    const postViewModel = await postsQueryRepository.findByIdOrFail(createdPostId)
 
     res.status(HttpStatus.Created_201).send(postViewModel)
   } catch(error: unknown) {

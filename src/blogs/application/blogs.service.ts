@@ -8,22 +8,36 @@ import {
 import {CreatePostForBlogDto} from "../dto/createPostForBlogDto";
 import {Post} from "../../posts/types/post";
 import {postsRepository} from "../../posts/repositories/posts.repository";
+import {
+  mapToPostListPaginationOutput
+} from "../../posts/routers/mappers/map-to-post-list-pagination-output.util";
+import {BlogPostsQueryInput} from "../routers/input/blog-posts-query.input";
+import {PaginationOutput} from "../../core/types/pagination.output";
+import {PostViewDto} from "../../posts/dto/postViewDto";
+import {
+  postsQueryRepository
+} from "../../posts/repositories/posts.query.repository";
 
 export const blogsService = {
 
-  async createPostForBlog(blogId: string, dto: CreatePostForBlogDto): Promise<string> {
-    const blog = await blogsRepository.findById(blogId);
+  async findPostsByBlogId(blogId: string, queryDto: BlogPostsQueryInput): Promise<PaginationOutput<PostViewDto>> {
+    await blogsRepository.findByIdOrFail(blogId)
 
-    if (!blog) {
-      throw new RepositoryNotFoundError('Blog not found');
-    }
+    const result = await postsQueryRepository.findManyByBlogId(blogId, queryDto)
+
+    return mapToPostListPaginationOutput(result, queryDto)
+  },
+
+  // Создать новый пост для конкретного блога
+  async createPostForBlog(blogId: string, dto: CreatePostForBlogDto): Promise<string> {
+    const blog = await blogsRepository.findByIdOrFail(blogId);
 
     const newPost: Post = {
       title: dto.title,
       shortDescription: dto.shortDescription,
       content: dto.content,
       blogId: blogId,
-      blogName: blog.name,
+      blogName: blog!.name,
       createdAt: new Date(),
     }
     return await postsRepository.create(newPost);
@@ -38,30 +52,20 @@ export const blogsService = {
       createdAt: new Date(),
       isMembership: false
     }
+
     return await blogsRepository.create(newBlog);
   },
 
   // Обновить данные бдога
   async update(id: string, dto: UpdateBlogDto): Promise<boolean> {
-    const blog = await blogsRepository.findById(id);
-    if (!blog) {
-      throw new RepositoryNotFoundError('Blog not found')
-    }
+    await blogsRepository.findByIdOrFail(id);
+
     return await blogsRepository.update(id, dto)
   },
 
   // Удалить блог
   async delete(id: string): Promise<boolean> {
-    const blog = await blogsRepository.findById(id);
-    if (!blog) {
-      throw new RepositoryNotFoundError('Blog not found')
-    }
-    //
-    // const postCount = await postsRepository.findById(id)
-    //
-    // if(postCount > 0) {
-    //   throw new Error('Blog has posts')
-    // }
+    await blogsRepository.findByIdOrFail(id);
 
     return await blogsRepository.delete(id)
   },

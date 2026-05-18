@@ -1,13 +1,11 @@
 import { Request, Response } from 'express';
 import {HttpStatus} from "../../../core/types/http-statuses";
 import {PostViewDto} from "../../dto/postViewDto";
-import {
-  postsQueryService,
-} from "../../application/posts-query.service";
 import {errorsHandler} from "../../../core/errors/errors.handler";
 import {PaginationOutput} from "../../../core/types/pagination.output";
 import {matchedData} from "express-validator";
 import {PostQueryInput} from "../input/post-query.input";
+import {postsQueryRepository} from "../../repositories/posts.query.repository";
 
 export const getPostListHandler = async (req: Request, res: Response<PaginationOutput<PostViewDto>>)=> {
   try {
@@ -16,7 +14,7 @@ export const getPostListHandler = async (req: Request, res: Response<PaginationO
       includeOptionals: true,
     });
 
-    const posts = await postsQueryService.findMany(queryInput)
+    const posts = await postsQueryRepository.findMany(queryInput)
 
     res.status(HttpStatus.Ok_200).send(posts);
   } catch (error: unknown) {
