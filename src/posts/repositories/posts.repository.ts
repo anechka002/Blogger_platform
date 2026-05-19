@@ -4,7 +4,6 @@ import {ObjectId, WithId} from "mongodb";
 import {postCollection} from "../../db/mongo.db";
 
 export const postsRepository = {
-
   // Найти пост по ID
   async findById(id: string): Promise<WithId<Post> | null> {
     if (!ObjectId.isValid(id)) {
