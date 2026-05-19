@@ -9,6 +9,10 @@ import {
 import {
   inputValidationResultMiddleware
 } from "../../core/middlewares/validation/input-validation-result.middleware";
+import {
+  userInputDtoValidation
+} from "../validation/user.input-dto.validation-middlewares";
+import {createUserHandler} from "./handlers/create-user.handler";
 import {UserSortField} from "../types/user-query-fields.type";
 
 export const usersRouter = Router({});
@@ -17,3 +21,5 @@ usersRouter.use(superAdminGuardMiddleware); // для всех роутеров
 
 usersRouter
   .get('/', paginationAndSortingValidation(UserSortField), inputValidationResultMiddleware, getUsersHandler)
+
+  .post('/', userInputDtoValidation, inputValidationResultMiddleware, createUserHandler)
