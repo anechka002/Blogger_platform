@@ -4,11 +4,24 @@ import {IUserDB} from "../types/user.db.type";
 import {
   RepositoryNotFoundError
 } from "../../core/errors/repositiry-not-found.error";
+import {UniqueFieldError} from "../../core/errors/unique-field.error";
+import {bcryptService} from "../../auth/adapters/bcrypt.service";
 
 export const usersService = {
   async create(dto: CreateUserDto): Promise<string> {
     const { login, email, password } = dto;
-    const passwordHash = '123'
+
+    const passwordHash = await bcryptService.generateHash(password);
+
+    const userByLogin = await usersRepository.findByLogin(login)
+    if (userByLogin) {
+      throw new UniqueFieldError('login','login should be unique')
+    }
+
+    const userByEmail = await usersRepository.findByEmail(email);
+    if (userByEmail) {
+      throw new UniqueFieldError('email','email should be unique')
+    }
 
     const newUser: IUserDB = {
       login,
@@ -27,5 +40,6 @@ export const usersService = {
     }
 
     return await usersRepository.delete(id)
-  }
+  },
+
 }

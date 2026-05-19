@@ -3,6 +3,7 @@ import {HttpStatus} from "../types/http-statuses";
 import {RepositoryNotFoundError} from "./repositiry-not-found.error";
 import {DomainError} from "./domain.error";
 import {createErrorMessages} from "./create-error-message";
+import {UniqueFieldError} from "./unique-field.error";
 
 export enum DomainErrorCode {
   BlogHasPosts = 'BLOG_HAS_POSTS',
@@ -14,6 +15,18 @@ export function errorsHandler(error: unknown, res: Response): void {
 
   if (error instanceof RepositoryNotFoundError) {
     res.sendStatus(HttpStatus.NotFound_404)
+    return;
+  }
+
+  if (error instanceof UniqueFieldError) {
+    res.status(HttpStatus.BadRequest_400).send(
+      createErrorMessages([
+        {
+          message: error.message,
+          field: error.field,
+        },
+      ])
+    );
     return;
   }
 

@@ -23,5 +23,17 @@ export const usersRepository = {
       .userCollection.deleteOne({_id: new ObjectId(id)})
 
     return isDeleted.deletedCount === 1
-  }
+  },
+
+  async findByLogin(login: string): Promise<WithId<IUserDB> | null> {
+    return await db
+      .getCollections()
+      .userCollection.findOne({login})
+  },
+
+  async findByEmail(email: string): Promise<WithId<IUserDB> | null> {
+    return await db
+      .getCollections()
+      .userCollection.findOne({email})
+  },
 }

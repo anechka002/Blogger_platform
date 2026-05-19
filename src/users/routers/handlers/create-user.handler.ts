@@ -11,7 +11,7 @@ export const createUserHandler = async (req: RequestWithBody<CreateUserDto>, res
   const {email, login, password} = req.body;
   try {
     const userId = await usersService.create({email, login, password})
-    console.log(userId)
+    // console.log(userId)
 
     const userViewModel = await usersQueryRepository.findById(userId)
 
