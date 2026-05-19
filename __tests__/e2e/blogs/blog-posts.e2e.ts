@@ -10,7 +10,7 @@ import { HttpStatus } from '../../../src/core/types/http-statuses';
 import { clearDb } from '../../utils/clear-db';
 import { createBlog } from '../../utils/blogs/create-blog';
 import { generateBasicAuthToken } from '../../utils/generate-admin-auth-token';
-import { runDB, stopDb } from '../../../src/db/mongo.db';
+import { db } from '../../../src/db/mongo.db';
 import { createPostForBlog } from '../../utils/blogs/create-post-for-blog';
 import { getBlogPosts } from '../../utils/blogs/get-blog-posts';
 import { PostSortField } from '../../../src/posts/routers/input/post-sort-field';
@@ -25,11 +25,11 @@ describe('blog posts e2e', () => {
   const adminAuth = generateBasicAuthToken();
 
   beforeAll(async () => {
-    await runDB(process.env.MONGO_URL!);
+    await db.run(process.env.MONGO_URL!);
   });
 
   afterAll(async () => {
-    await stopDb();
+    await db.stop();
   });
 
   beforeEach(async () => {

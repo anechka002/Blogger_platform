@@ -12,7 +12,7 @@ import { getBlogById } from '../../utils/blogs/get-blog-by-id';
 import { updateBlog } from '../../utils/blogs/update-blog';
 import { deleteBlog } from '../../utils/blogs/delete-blog';
 import { generateBasicAuthToken } from '../../utils/generate-admin-auth-token';
-import { runDB, stopDb } from '../../../src/db/mongo.db';
+import { db } from '../../../src/db/mongo.db';
 import dotenv from 'dotenv'
 import {ObjectId} from "mongodb";
 dotenv.config()
@@ -25,11 +25,11 @@ describe('blogs e2e', () => {
   const incorrectAdminAuth = generateBasicAuthToken('admin', 'wrong-password');
 
   beforeAll(async () => {
-    await runDB(process.env.MONGO_URL!);
+    await db.run(process.env.MONGO_URL!);
   });
 
   afterAll(async () => {
-    await stopDb();
+    await db.stop();
   });
 
   beforeEach(async () => {

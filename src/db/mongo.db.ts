@@ -8,14 +8,10 @@ const BLOG_COLLECTION_NAME = 'blogs';
 const POST_COLLECTION_NAME = 'posts';
 const USER_COLLECTION_NAME = 'users';
 
-export let client: MongoClient;
-export let blogCollection: Collection<Blog>;
-export let postCollection: Collection<Post>;
-
 export const db = {
   client: null as MongoClient | null,
 
-  getDbName(): Db {
+  getDb(): Db {
     if (!db.client) {
       throw new Error('Mongo client is not initialized');
     }
@@ -27,11 +23,7 @@ export const db = {
     try {
       db.client = new MongoClient(url);
       await db.client.connect();
-      await db.getDbName().command({ ping: 1 });
-
-      const database = db.getDbName();
-      blogCollection = database.collection<Blog>(BLOG_COLLECTION_NAME);
-      postCollection = database.collection<Post>(POST_COLLECTION_NAME);
+      await db.getDb().command({ ping: 1 });
 
       console.log('Connected successfully to mongo server');
     } catch (e: unknown) {
@@ -57,12 +49,12 @@ export const db = {
 
   async drop() {
     try {
-      //await db.getDbName().dropDatabase()
-      const collections = await db.getDbName().listCollections().toArray();
+      //await db.getDb().dropDatabase()
+      const collections = await db.getDb().listCollections().toArray();
 
       for (const collection of collections) {
         const collectionName = collection.name;
-        await db.getDbName().collection(collectionName).deleteMany({});
+        await db.getDb().collection(collectionName).deleteMany({});
       }
     } catch (e: unknown) {
       console.error('Error in drop db:', e);
@@ -75,7 +67,7 @@ export const db = {
     postCollection: Collection<Post>;
     userCollection: Collection<IUserDB>;
   } {
-    const database = db.getDbName();
+    const database = db.getDb();
 
     return {
       blogCollection: database.collection<Blog>(BLOG_COLLECTION_NAME),
@@ -87,29 +79,29 @@ export const db = {
 
 
 
-
-// Подключения к бд
-export async function runDB(url: string): Promise<void> {
-  client = new MongoClient(url);
-  const db: Db = client.db(SETTINGS.DB_NAME);
-
-  //Инициализация коллекций
-  blogCollection = db.collection<Blog>(BLOG_COLLECTION_NAME);
-  postCollection = db.collection<Post>(POST_COLLECTION_NAME);
-
-  try {
-    await client.connect();
-    await db.command({ ping: 1 });
-    console.log('✅ Connected to the database');
-  } catch (e) {
-    await client.close();
-    throw new Error(`❌ Database not connected: ${e}`);
-  }
-}
-
-export async function stopDb(){
-  if(!client){
-    throw new Error(`❌ No active client`);
-  }
-  await client.close();
-}
+//
+// // Подключения к бд
+// export async function runDB(url: string): Promise<void> {
+//   client = new MongoClient(url);
+//   const db: Db = client.db(SETTINGS.DB_NAME);
+//
+//   //Инициализация коллекций
+//   blogCollection = db.collection<Blog>(BLOG_COLLECTION_NAME);
+//   postCollection = db.collection<Post>(POST_COLLECTION_NAME);
+//
+//   try {
+//     await client.connect();
+//     await db.command({ ping: 1 });
+//     console.log('✅ Connected to the database');
+//   } catch (e) {
+//     await client.close();
+//     throw new Error(`❌ Database not connected: ${e}`);
+//   }
+// }
+//
+// export async function stopDb(){
+//   if(!client){
+//     throw new Error(`❌ No active client`);
+//   }
+//   await client.close();
+// }

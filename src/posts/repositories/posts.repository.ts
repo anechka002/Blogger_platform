@@ -1,7 +1,7 @@
 import {Post} from "../types/post";
 import {UpdatePostDto} from "../dto/updatePostDto";
 import {ObjectId, WithId} from "mongodb";
-import {postCollection} from "../../db/mongo.db";
+import {db} from "../../db/mongo.db";
 
 export const postsRepository = {
   // Найти пост по ID
@@ -9,19 +9,29 @@ export const postsRepository = {
     if (!ObjectId.isValid(id)) {
       return null
     }
-    return await postCollection.findOne({_id: new ObjectId(id)});
+    return await db
+      .getCollections()
+      .postCollection.findOne({_id: new ObjectId(id)});
   },
 
   // Создать новый пост
   async create(post: Post): Promise<string> {
-    const insertResult = await postCollection.insertOne(post);
+    const insertResult = await db
+      .getCollections()
+      .postCollection.insertOne(post);
 
     return insertResult.insertedId.toString();
   },
 
   // Обновить данные поста
-  async update(id: string, dto: UpdatePostDto, blogName: string): Promise<void> {
-    const updateResult = await postCollection.updateOne(
+  async update(id: string, dto: UpdatePostDto, blogName: string): Promise<boolean> {
+    if (!ObjectId.isValid(id)) {
+      return false;
+    }
+
+    const isUpdated = await db
+      .getCollections()
+      .postCollection.updateOne(
       {
         _id: new ObjectId(id)
       },
@@ -36,20 +46,19 @@ export const postsRepository = {
       }
     );
 
-    if (updateResult.matchedCount < 1) {
-      throw new Error("Post not exist");
-    }
-
-    return
+    return isUpdated.matchedCount === 1
   },
 
   // Удалить пост
-  async delete(id: string): Promise<void> {
-    const deletedResult = await postCollection.deleteOne({_id: new ObjectId(id)});
-    if(deletedResult.deletedCount < 1) {
-      throw new Error("Post not deleted");
+  async delete(id: string): Promise<boolean> {
+    if (!ObjectId.isValid(id)) {
+      return false;
     }
 
-    return
+    const isDeleted = await db
+      .getCollections()
+      .postCollection.deleteOne({_id: new ObjectId(id)});
+
+    return isDeleted.deletedCount === 1
   },
 };

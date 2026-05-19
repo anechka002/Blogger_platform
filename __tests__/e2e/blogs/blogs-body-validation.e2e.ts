@@ -8,7 +8,7 @@ import { HttpStatus } from '../../../src/core/types/http-statuses';
 import { generateBasicAuthToken } from '../../utils/generate-admin-auth-token';
 import { clearDb } from '../../utils/clear-db';
 import { getBlogDto } from '../../utils/blogs/get-blog-dto';
-import {runDB, stopDb} from "../../../src/db/mongo.db";
+import {db} from "../../../src/db/mongo.db";
 import {createBlog} from "../../utils/blogs/create-blog";
 import {getBlogById} from "../../utils/blogs/get-blog-by-id";
 import dotenv from 'dotenv'
@@ -21,11 +21,11 @@ describe('blogs body validation e2e', () => {
   const adminAuth = generateBasicAuthToken();
 
   beforeAll(async () => {
-    await runDB(process.env.MONGO_URL!);
+    await db.run(process.env.MONGO_URL!);
   });
 
   afterAll(async () => {
-    await stopDb();
+    await db.stop();
   });
 
   beforeEach(async () => {

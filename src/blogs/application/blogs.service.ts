@@ -2,9 +2,6 @@ import {Blog} from "../types/blog";
 import {UpdateBlogDto} from "../dto/updateBlogDto";
 import {blogsRepository} from "../repositories/blogs.repository";
 import {CreateBlogDto} from "../dto/createBlogDto";
-import {
-  RepositoryNotFoundError
-} from "../../core/errors/repositiry-not-found.error";
 import {CreatePostForBlogDto} from "../dto/createPostForBlogDto";
 import {Post} from "../../posts/types/post";
 import {postsRepository} from "../../posts/repositories/posts.repository";
@@ -37,7 +34,7 @@ export const blogsService = {
       shortDescription: dto.shortDescription,
       content: dto.content,
       blogId: blogId,
-      blogName: blog!.name,
+      blogName: blog.name,
       createdAt: new Date(),
     }
     return await postsRepository.create(newPost);

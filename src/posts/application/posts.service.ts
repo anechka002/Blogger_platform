@@ -9,7 +9,6 @@ import {CreatePostDto} from "../dto/createPostDto";
 import {DomainError} from "../../core/errors/domain.error";
 
 export const postsService = {
-
   // Создать новый пост
   async create(dto: CreatePostDto): Promise<string> {
     const foundBlog = await blogsRepository.findByIdOrFail(dto.blogId)
@@ -27,7 +26,7 @@ export const postsService = {
   },
 
   // Обновить данные поста
-  async update(id: string, dto: UpdatePostDto): Promise<void> {
+  async update(id: string, dto: UpdatePostDto): Promise<boolean> {
     const foundPost = await postsRepository.findById(id)
 
     if (!foundPost) {
@@ -44,7 +43,7 @@ export const postsService = {
   },
 
   // Удалить пост
-  async delete(id: string): Promise<void> {
+  async delete(id: string): Promise<boolean> {
     const foundPost = await postsRepository.findById(id)
 
     if (!foundPost) {

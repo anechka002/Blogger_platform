@@ -10,7 +10,7 @@ import { getPostDto } from "../../utils/posts/get-post-dto";
 import { createBlog } from "../../utils/blogs/create-blog";
 import {getPostById} from "../../utils/posts/get-post-by-id";
 import {createPost} from "../../utils/posts/create-post";
-import {runDB, stopDb} from "../../../src/db/mongo.db";
+import {db} from "../../../src/db/mongo.db";
 import {generateBasicAuthToken} from "../../utils/generate-admin-auth-token";
 import {updatePost} from "../../utils/posts/update-post";
 import {deletePost} from "../../utils/posts/delete-post";
@@ -28,11 +28,11 @@ describe('posts e2e', () => {
   const incorrectAdminAuth = generateBasicAuthToken('admin', 'wrong-password');
 
   beforeAll(async () => {
-    await runDB(process.env.MONGO_URL!);
+    await db.run(process.env.MONGO_URL!);
   });
 
   afterAll(async () => {
-    await stopDb();
+    await db.stop();
   });
 
   beforeEach(async () => {

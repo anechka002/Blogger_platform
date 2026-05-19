@@ -1,5 +1,5 @@
 import {ObjectId} from "mongodb";
-import {blogCollection} from "../../db/mongo.db";
+import {db} from "../../db/mongo.db";
 import {BlogQueryInput} from "../routers/input/blog-query.input";
 import {calculateSkip} from "../../core/utils/calculateSkip";
 import {PaginationOutput} from "../../core/types/pagination.output";
@@ -19,14 +19,18 @@ export const blogsQueryRepository = {
     const filter = searchNameTerm ? {name: {$regex: searchNameTerm, $options: "i"}}: {};
     const skip = calculateSkip(pageNumber, pageSize);
 
-    const items = await blogCollection
+    const items = await db
+      .getCollections()
+      .blogCollection
       .find(filter)
       .sort({[sortBy]: sortDirection})
       .skip(skip)
       .limit(pageSize)
       .toArray();
 
-    const totalCount = await blogCollection.countDocuments(filter)
+    const totalCount = await db
+      .getCollections()
+      .blogCollection.countDocuments(filter)
 
     return {
       pagesCount: Math.ceil(totalCount / queryDto.pageSize),
@@ -37,9 +41,28 @@ export const blogsQueryRepository = {
     }
   },
 
+  // Найти блог по ID
+  async findById(id: string): Promise<BlogViewDto | null> {
+    if (!ObjectId.isValid(id)) {
+      return null;
+    }
+
+    const foundBlog = await db
+      .getCollections()
+      .blogCollection.findOne({_id: new ObjectId(id)});
+
+    return foundBlog ? mapToBlogViewModel(foundBlog) : null;
+  },
+
   // Найти блог по ID или завершить с ошибкой
   async findByIdOrFail(id: string): Promise<BlogViewDto> {
-    const foundBlog = await blogCollection.findOne({_id: new ObjectId(id)});
+    if (!ObjectId.isValid(id)) {
+      throw new RepositoryNotFoundError('No blog found with id ' + id);
+    }
+
+    const foundBlog = await db
+      .getCollections()
+      .blogCollection.findOne({_id: new ObjectId(id)});
 
     if (!foundBlog) {
       throw new RepositoryNotFoundError('No blog found with id ' + id);
