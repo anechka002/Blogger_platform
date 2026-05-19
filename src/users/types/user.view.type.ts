@@ -1,4 +1,4 @@
-export type UserViewType = {
+export type IUserView = {
   id: string;
   login: string;
   email: string;

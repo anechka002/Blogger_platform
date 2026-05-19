@@ -1,6 +1,6 @@
 import {UserQueryFieldsType} from "../types/user-query-fields.type";
 import {PaginationOutput} from "../../core/types/pagination.output";
-import {UserViewType} from "../types/user.view.type";
+import {IUserView} from "../types/user.view.type";
 import {calculateSkip} from "../../core/utils/calculateSkip";
 import {db} from "../../db/mongo.db";
 import {
@@ -12,7 +12,7 @@ import {IUserDB} from "../types/user.db.type";
 
 export const usersQueryRepository = {
   // Найти всех users с пагинацией и сортировкой
-  async findAllUsers(queryDto: UserQueryFieldsType): Promise<PaginationOutput<UserViewType>> {
+  async findAllUsers(queryDto: UserQueryFieldsType): Promise<PaginationOutput<IUserView>> {
     const {pageNumber, pageSize, sortBy, sortDirection, searchLoginTerm, searchEmailTerm } = queryDto;
 
     const searchConditions = []
@@ -54,7 +54,7 @@ export const usersQueryRepository = {
 
   },
 
-  async findById(id: string): Promise<UserViewType | null> {
+  async findById(id: string): Promise<IUserView | null> {
     if (!ObjectId.isValid(id)) {
       return null;
     }
@@ -65,7 +65,7 @@ export const usersQueryRepository = {
     return user ? this._getInView(user) : null
   },
 
-  _getInView(user: WithId<IUserDB>): UserViewType {
+  _getInView(user: WithId<IUserDB>): IUserView {
     return {
       id: user._id.toString(),
       login: user.login,

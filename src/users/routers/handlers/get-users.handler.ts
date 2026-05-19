@@ -3,11 +3,11 @@ import {PaginationOutput} from "../../../core/types/pagination.output";
 import {matchedData} from "express-validator";
 import {HttpStatus} from "../../../core/types/http-statuses";
 import {errorsHandler} from "../../../core/errors/errors.handler";
-import {UserViewType} from "../../types/user.view.type";
+import {IUserView} from "../../types/user.view.type";
 import {UserQueryFieldsType} from "../../types/user-query-fields.type";
 import {usersQueryRepository} from "../../repositories/users.query.repository";
 
-export const getUsersHandler = async (req: Request, res: Response<PaginationOutput<UserViewType>>): Promise<void> => {
+export const getUsersHandler = async (req: Request, res: Response<PaginationOutput<IUserView>>): Promise<void> => {
   try {
     const queryInput = matchedData<UserQueryFieldsType>(req, {
       locations: ["query"],
