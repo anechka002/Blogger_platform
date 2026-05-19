@@ -14,6 +14,10 @@ import {
 } from "../validation/user.input-dto.validation-middlewares";
 import {createUserHandler} from "./handlers/create-user.handler";
 import {UserSortField} from "../types/user-query-fields.type";
+import {
+  idValidationMiddleware
+} from "../../core/middlewares/validation/params-id.validation-middleware";
+import {deleteUserHandler} from "./handlers/delete-user.handler";
 
 export const usersRouter = Router({});
 
@@ -23,3 +27,5 @@ usersRouter
   .get('/', paginationAndSortingValidation(UserSortField), inputValidationResultMiddleware, getUsersHandler)
 
   .post('/', userInputDtoValidation, inputValidationResultMiddleware, createUserHandler)
+
+  .delete('/:id', idValidationMiddleware(), inputValidationResultMiddleware, deleteUserHandler);
