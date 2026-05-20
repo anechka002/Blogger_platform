@@ -11,6 +11,7 @@ import {matchedData} from "express-validator";
 import {BlogPostsQueryInput} from "../input/blog-posts-query.input";
 import {blogsService} from "../../application/blogs.service";
 
+// получить посты блога
 export const getBlogPostsHandler = async (req: RequestWithParams<URIParamsBlogIdPostsDto>, res: Response<PaginationOutput<PostViewDto>>) => {
   try {
     const blogId = req.params.blogId;

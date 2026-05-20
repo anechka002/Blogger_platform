@@ -1,7 +1,7 @@
 import {Router} from "express";
 import {
-  superAdminGuardMiddleware
-} from "../../auth/middlewares/super-admin.guard-middleware";
+  baseAuthGuardMiddleware
+} from "../../auth/middlewares/base.auth.guard-middleware";
 import {getUsersHandler} from "./handlers/get-users.handler";
 import {
   paginationAndSortingValidation
@@ -21,7 +21,7 @@ import {deleteUserHandler} from "./handlers/delete-user.handler";
 
 export const usersRouter = Router({});
 
-usersRouter.use(superAdminGuardMiddleware); // для всех роутеров
+usersRouter.use(baseAuthGuardMiddleware); // для всех роутеров
 
 usersRouter
   .get('/', paginationAndSortingValidation(UserSortField), inputValidationResultMiddleware, getUsersHandler)

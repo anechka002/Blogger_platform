@@ -6,8 +6,7 @@ import {db} from "../../db/mongo.db";
 import {
   mapToUserViewModel
 } from "../routers/mappers/map-to-user-view-model.utils";
-import {ObjectId, WithId} from "mongodb";
-import {IUserDB} from "../types/user.db.type";
+import {ObjectId} from "mongodb";
 
 
 export const usersQueryRepository = {
@@ -54,6 +53,7 @@ export const usersQueryRepository = {
 
   },
 
+  // Найти user по id
   async findById(id: string): Promise<IUserView | null> {
     if (!ObjectId.isValid(id)) {
       return null;
@@ -62,15 +62,7 @@ export const usersQueryRepository = {
     const user = await db
       .getCollections()
       .userCollection.findOne({_id: new ObjectId(id)})
-    return user ? this._getInView(user) : null
+    return user ? mapToUserViewModel(user) : null
   },
 
-  _getInView(user: WithId<IUserDB>): IUserView {
-    return {
-      id: user._id.toString(),
-      login: user.login,
-      email: user.email,
-      createdAt: user.createdAt.toISOString(),
-    }
-  }
 }

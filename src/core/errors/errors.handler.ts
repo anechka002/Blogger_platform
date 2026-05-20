@@ -4,6 +4,7 @@ import {RepositoryNotFoundError} from "./repositiry-not-found.error";
 import {DomainError} from "./domain.error";
 import {createErrorMessages} from "./create-error-message";
 import {UniqueFieldError} from "./unique-field.error";
+import {UnauthorizedError} from "./unauthorized.error";
 
 export enum DomainErrorCode {
   BlogHasPosts = 'BLOG_HAS_POSTS',
@@ -15,6 +16,11 @@ export function errorsHandler(error: unknown, res: Response): void {
 
   if (error instanceof RepositoryNotFoundError) {
     res.sendStatus(HttpStatus.NotFound_404)
+    return;
+  }
+
+  if (error instanceof UnauthorizedError) {
+    res.sendStatus(HttpStatus.Unauthorized_401)
     return;
   }
 

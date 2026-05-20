@@ -14,7 +14,7 @@ export const getUsersHandler = async (req: Request, res: Response<PaginationOutp
       includeOptionals: true,
     });
 
-    console.log(queryInput);
+    // console.log(queryInput);
 
     const users = await usersQueryRepository.findAllUsers(queryInput);
 

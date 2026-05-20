@@ -14,8 +14,8 @@ import {
   idValidationMiddleware
 } from "../../core/middlewares/validation/params-id.validation-middleware";
 import {
-  superAdminGuardMiddleware
-} from "../../auth/middlewares/super-admin.guard-middleware";
+  baseAuthGuardMiddleware
+} from "../../auth/middlewares/base.auth.guard-middleware";
 import {paginationAndSortingValidation} from "../../core/middlewares/validation/query-pagination-sorting.validation-middleware";
 import {PostSortField} from "../../posts/routers/input/post-sort-field";
 import {getBlogPostsHandler} from "./handlers/get-blog-posts.handler";
@@ -34,14 +34,14 @@ export const blogsRouter = Router({});
 blogsRouter
   .get('/', paginationAndSortingValidation(BlogSortField), inputValidationResultMiddleware, getBlogListHandler)
 
-  .post('/', superAdminGuardMiddleware, blogInputDtoValidation, inputValidationResultMiddleware, createBlogHandler)
+  .post('/', baseAuthGuardMiddleware, blogInputDtoValidation, inputValidationResultMiddleware, createBlogHandler)
 
   .get('/:id', idValidationMiddleware(), inputValidationResultMiddleware, getBlogHandler)
 
-  .put('/:id', superAdminGuardMiddleware, idValidationMiddleware(), blogInputDtoValidation, inputValidationResultMiddleware, updateBlogHandler)
+  .put('/:id', baseAuthGuardMiddleware, idValidationMiddleware(), blogInputDtoValidation, inputValidationResultMiddleware, updateBlogHandler)
 
-  .delete('/:id', superAdminGuardMiddleware, idValidationMiddleware(), inputValidationResultMiddleware, deleteBlogHandler)
+  .delete('/:id', baseAuthGuardMiddleware, idValidationMiddleware(), inputValidationResultMiddleware, deleteBlogHandler)
 
   .get('/:blogId/posts', idValidationMiddleware('blogId'), paginationAndSortingValidation(PostSortField), inputValidationResultMiddleware, getBlogPostsHandler)
 
-  .post('/:blogId/posts', superAdminGuardMiddleware, idValidationMiddleware('blogId'), blogPostInputDtoValidation, inputValidationResultMiddleware, createPostForBlogHandler)
+  .post('/:blogId/posts', baseAuthGuardMiddleware, idValidationMiddleware('blogId'), blogPostInputDtoValidation, inputValidationResultMiddleware, createPostForBlogHandler)

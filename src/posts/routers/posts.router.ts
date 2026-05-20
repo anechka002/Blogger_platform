@@ -3,8 +3,8 @@ import {
   inputValidationResultMiddleware
 } from "../../core/middlewares/validation/input-validation-result.middleware";
 import {
-  superAdminGuardMiddleware
-} from "../../auth/middlewares/super-admin.guard-middleware";
+  baseAuthGuardMiddleware
+} from "../../auth/middlewares/base.auth.guard-middleware";
 import {
   postInputDtoValidation
 } from "../validation/post.input-dto.validation-middlewares";
@@ -28,10 +28,10 @@ export const postsRouter = Router({});
 postsRouter
   .get('/', paginationAndSortingValidation(PostSortField), inputValidationResultMiddleware, getPostListHandler)
 
-  .post('/', superAdminGuardMiddleware, postInputDtoValidation, inputValidationResultMiddleware, createPostHandler)
+  .post('/', baseAuthGuardMiddleware, postInputDtoValidation, inputValidationResultMiddleware, createPostHandler)
 
   .get('/:id', idValidationMiddleware(), inputValidationResultMiddleware, getPostHandler)
 
-  .put('/:id', superAdminGuardMiddleware, idValidationMiddleware(), postInputDtoValidation, inputValidationResultMiddleware, updatePostHandler)
+  .put('/:id', baseAuthGuardMiddleware, idValidationMiddleware(), postInputDtoValidation, inputValidationResultMiddleware, updatePostHandler)
 
-  .delete('/:id', superAdminGuardMiddleware, idValidationMiddleware(), inputValidationResultMiddleware, deletePostHandler)
+  .delete('/:id', baseAuthGuardMiddleware, idValidationMiddleware(), inputValidationResultMiddleware, deletePostHandler)

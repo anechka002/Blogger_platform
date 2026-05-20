@@ -36,4 +36,10 @@ export const usersRepository = {
       .getCollections()
       .userCollection.findOne({email})
   },
+
+  async findByLoginOrEmail(loginOrEmail: string): Promise<WithId<IUserDB> | null> {
+    return await db
+      .getCollections()
+      .userCollection.findOne({$or: [{ email: loginOrEmail }, { login: loginOrEmail }]})
+  }
 }

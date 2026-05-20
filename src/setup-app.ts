@@ -1,6 +1,7 @@
 import express, { Express } from "express";
 import {blogsRouter} from "./blogs/routers/blogs.router";
 import {
+  AUTH_PATH,
   BLOGS_PATH,
   POSTS_PATH,
   TESTING_PATH,
@@ -10,6 +11,7 @@ import {postsRouter} from "./posts/routers/posts.router";
 import {setupSwagger} from "./core/swagger/setup-swagger";
 import {testingRouter} from "./testing/routers/testing.router";
 import {usersRouter} from "./users/routers/users.router";
+import {authRouter} from "./auth/routers/auth.router";
 
 export const setupApp = (app: Express) => {
   app.use(express.json()); // middleware для парсинга JSON в теле запроса
@@ -28,6 +30,7 @@ export const setupApp = (app: Express) => {
   app.use(BLOGS_PATH, blogsRouter);
   app.use(POSTS_PATH, postsRouter);
   app.use(USERS_PATH, usersRouter);
+  app.use(AUTH_PATH, authRouter);
   app.use(TESTING_PATH, testingRouter);
 
   setupSwagger(app);

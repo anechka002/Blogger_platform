@@ -4,7 +4,7 @@ import {HttpStatus} from "../../core/types/http-statuses";
 export const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'qwerty';
 
-export const superAdminGuardMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const baseAuthGuardMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const auth = req.headers['authorization'] as string;
 
   if (!auth) {

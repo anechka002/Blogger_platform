@@ -17,6 +17,7 @@ import {
 
 export const blogsService = {
 
+  // Найти посты, которые принадлежат конкретному блогу по его blogId.
   async findPostsByBlogId(blogId: string, queryDto: BlogPostsQueryInput): Promise<PaginationOutput<PostViewDto>> {
     await blogsRepository.findByIdOrFail(blogId)
 
