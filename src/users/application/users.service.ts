@@ -6,12 +6,13 @@ import {
 } from "../../core/errors/repositiry-not-found.error";
 import {UniqueFieldError} from "../../core/errors/unique-field.error";
 import {bcryptService} from "../../auth/adapters/bcrypt.service";
+import {argon2Service} from "../../auth/adapters/argon.service";
 
 export const usersService = {
   async createUser(dto: CreateUserDto): Promise<string> {
     const { login, email, password } = dto;
 
-    const passwordHash = await bcryptService.generateHash(password);
+    const passwordHash = await argon2Service.generateHash(password);
 
     const userByLogin = await usersRepository.findByLogin(login)
     if (userByLogin) {
