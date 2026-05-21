@@ -5,27 +5,8 @@ import {CreateBlogDto} from "../dto/createBlogDto";
 import {CreatePostForBlogDto} from "../dto/createPostForBlogDto";
 import {Post} from "../../posts/types/post";
 import {postsRepository} from "../../posts/repositories/posts.repository";
-import {
-  mapToPostListPaginationOutput
-} from "../../posts/routers/mappers/map-to-post-list-pagination-output.util";
-import {BlogPostsQueryInput} from "../routers/input/blog-posts-query.input";
-import {PaginationOutput} from "../../core/types/pagination.output";
-import {PostViewDto} from "../../posts/dto/postViewDto";
-import {
-  postsQueryRepository
-} from "../../posts/repositories/posts.query.repository";
 
 export const blogsService = {
-
-  // Найти посты, которые принадлежат конкретному блогу по его blogId.
-  async findPostsByBlogId(blogId: string, queryDto: BlogPostsQueryInput): Promise<PaginationOutput<PostViewDto>> {
-    await blogsRepository.findByIdOrFail(blogId)
-
-    const result = await postsQueryRepository.findManyByBlogId(blogId, queryDto)
-
-    return mapToPostListPaginationOutput(result, queryDto)
-  },
-
   // Создать новый пост для конкретного блога
   async createPostForBlog(blogId: string, dto: CreatePostForBlogDto): Promise<string> {
     const blog = await blogsRepository.findByIdOrFail(blogId);

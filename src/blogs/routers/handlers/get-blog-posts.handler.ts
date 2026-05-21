@@ -9,7 +9,10 @@ import {PostViewDto} from "../../../posts/dto/postViewDto";
 import {URIParamsBlogIdPostsDto} from "../../dto/URIParamsBlogIdPostsDto";
 import {matchedData} from "express-validator";
 import {BlogPostsQueryInput} from "../input/blog-posts-query.input";
-import {blogsService} from "../../application/blogs.service";
+import {blogsQueryRepository} from "../../repositories/blogs.query.repository";
+import {
+  postsQueryRepository
+} from "../../../posts/repositories/posts.query.repository";
 
 // получить посты блога
 export const getBlogPostsHandler = async (req: RequestWithParams<URIParamsBlogIdPostsDto>, res: Response<PaginationOutput<PostViewDto>>) => {
@@ -23,7 +26,9 @@ export const getBlogPostsHandler = async (req: RequestWithParams<URIParamsBlogId
 
     // console.log(queryInput);
 
-    const result = await blogsService.findPostsByBlogId(blogId, queryInput)
+    await blogsQueryRepository.findByIdOrFail(blogId)
+
+    const result = await postsQueryRepository.findManyByBlogId(blogId, queryInput)
 
     res.status(HttpStatus.Ok_200).send(result)
   } catch(error: unknown) {

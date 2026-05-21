@@ -13,12 +13,13 @@ import {ObjectId, WithId} from "mongodb";
 import {
   BlogPostsQueryInput
 } from "../../blogs/routers/input/blog-posts-query.input";
-import {Post} from "../types/post";
+import {
+  mapToPostListPaginationOutput
+} from "../routers/mappers/map-to-post-list-pagination-output.util";
 
 export const postsQueryRepository = {
-
   // Найти все посты у которых поле blogId равно этому blogId
-  async findManyByBlogId(blogId: string, queryDto: BlogPostsQueryInput): Promise<{items: WithId<Post>[], totalCount: number}> {
+  async findManyByBlogId(blogId: string, queryDto: BlogPostsQueryInput): Promise<PaginationOutput<PostViewDto>> {
     const { pageNumber, pageSize, sortBy, sortDirection} = queryDto;
 
     const filter = {blogId};
@@ -37,7 +38,7 @@ export const postsQueryRepository = {
       .getCollections()
       .postCollection.countDocuments(filter)
 
-    return {items, totalCount}
+    return mapToPostListPaginationOutput({items, totalCount}, queryDto)
   },
 
   // Найти все посты с пагинацией и сортировкой
