@@ -26,13 +26,14 @@ import {
 import {
   blogPostInputDtoValidation
 } from "../../posts/validation/post.input-dto.validation-middlewares";
+import {searchNameTermValidation} from "../validation/blogs-query.validation";
 
 export const blogsRouter = Router({});
 
 // blogsRouter.use(superAdminGuardMiddleware); // для всех роутеров
 
 blogsRouter
-  .get('/', paginationAndSortingValidation(BlogSortField), inputValidationResultMiddleware, getBlogListHandler)
+  .get('/', paginationAndSortingValidation(BlogSortField), searchNameTermValidation, inputValidationResultMiddleware, getBlogListHandler)
 
   .post('/', baseAuthGuardMiddleware, blogInputDtoValidation, inputValidationResultMiddleware, createBlogHandler)
 

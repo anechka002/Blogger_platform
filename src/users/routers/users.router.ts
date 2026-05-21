@@ -18,13 +18,17 @@ import {
   idValidationMiddleware
 } from "../../core/middlewares/validation/params-id.validation-middleware";
 import {deleteUserHandler} from "./handlers/delete-user.handler";
+import {
+  searchEmailTermValidation,
+  searchLoginTermValidation
+} from "../validation/users-query.validation";
 
 export const usersRouter = Router({});
 
 usersRouter.use(baseAuthGuardMiddleware); // для всех роутеров
 
 usersRouter
-  .get('/', paginationAndSortingValidation(UserSortField), inputValidationResultMiddleware, getUsersHandler)
+  .get('/', paginationAndSortingValidation(UserSortField), searchLoginTermValidation, searchEmailTermValidation, inputValidationResultMiddleware, getUsersHandler)
 
   .post('/', userInputDtoValidation, inputValidationResultMiddleware, createUserHandler)
 

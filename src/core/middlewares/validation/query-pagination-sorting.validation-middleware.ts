@@ -4,7 +4,7 @@ import {SortDirectionEnum} from "../../types/sort-direction";
 // Дефолтные значения
 const DEFAULT_PAGE_NUMBER = 1;
 const DEFAULT_PAGE_SIZE = 10;
-const DEFAULT_SORT_DIRECTION = SortDirectionEnum.Asc;
+const DEFAULT_SORT_DIRECTION = SortDirectionEnum.Desc;
 
 export function paginationAndSortingValidation<T extends string>(sortFieldsEnum: Record<string, T>) {
   return [
@@ -29,20 +29,5 @@ export function paginationAndSortingValidation<T extends string>(sortFieldsEnum:
       .default(DEFAULT_SORT_DIRECTION)
       .isIn(Object.values(SortDirectionEnum))
       .withMessage(`Sort direction must be one of: ${Object.values(SortDirectionEnum).join(', ')}`),
-
-    query('searchNameTerm')
-      .optional()
-      .isString()
-      .trim(),
-
-    query('searchLoginTerm')
-      .optional()
-      .isString()
-      .trim(),
-
-    query('searchEmailTerm')
-      .optional()
-      .isString()
-      .trim(),
   ]
 }
