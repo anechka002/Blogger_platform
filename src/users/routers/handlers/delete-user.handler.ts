@@ -7,7 +7,7 @@ import {HttpStatus} from "../../../core/types/http-statuses";
 
 export const deleteUserHandler = async (req: RequestWithParams<URIParamsUserIdDto>, res: Response) => {
   try {
-    await usersService.delete(req.params.id)
+    await usersService.deleteUser(req.params.id)
 
     res.sendStatus(HttpStatus.NoContent_204)
   } catch(error: unknown) {

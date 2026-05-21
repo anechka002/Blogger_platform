@@ -8,7 +8,7 @@ import {UniqueFieldError} from "../../core/errors/unique-field.error";
 import {bcryptService} from "../../auth/adapters/bcrypt.service";
 
 export const usersService = {
-  async create(dto: CreateUserDto): Promise<string> {
+  async createUser(dto: CreateUserDto): Promise<string> {
     const { login, email, password } = dto;
 
     const passwordHash = await bcryptService.generateHash(password);
@@ -32,7 +32,7 @@ export const usersService = {
     return await usersRepository.create(newUser);
   },
 
-  async delete(id: string): Promise<boolean> {
+  async deleteUser(id: string): Promise<boolean> {
     const userId = await usersRepository.findById(id)
 
     if (!userId) {
