@@ -3,7 +3,7 @@ import argon2 from 'argon2'
 export const argon2Service = {
   async generateHash(password: string): Promise<string> {
     const hash = await argon2.hash(password)
-    console.log('hash', hash)
+    // console.log('hash: ', hash)
     return hash
   },
 
