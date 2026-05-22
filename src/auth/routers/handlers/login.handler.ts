@@ -4,15 +4,15 @@ import {LoginDto} from "../../types/login.dto";
 import {errorsHandler} from "../../../core/errors/errors.handler";
 import {HttpStatus} from "../../../core/types/http-statuses";
 import {authService} from "../../application/auth.service";
+import {ILoginView} from "../../types/login.view.type";
 
-export const loginHandler = async (req: RequestWithBody<LoginDto>, res: Response) => {
+export const loginHandler = async (req: RequestWithBody<LoginDto>, res: Response<ILoginView>) => {
   const { loginOrEmail, password } = req.body;
   try {
-    const isLoggedIn = await authService.loginUser(loginOrEmail, password)
+    const accessToken = await authService.loginUser(loginOrEmail, password)
+    // console.log('accessToken: ', accessToken)
 
-    // console.log('login', isLoggedIn)
-
-    res.sendStatus(HttpStatus.NoContent_204)
+    res.status(HttpStatus.Ok_200).send({accessToken: accessToken});
   } catch (error: unknown) {
     errorsHandler(error, res)
   }

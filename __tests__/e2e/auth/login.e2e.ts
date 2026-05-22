@@ -24,7 +24,7 @@ describe('Login e2e', () => {
     await clearDb(app)
   })
 
-  it('POST -> "/auth/login": should sign in user; status 204', async () => {
+  it('POST -> "/auth/login": should sign in user; status 200 and access token', async () => {
     const userDto = {
       login: 'Natalia',
       password: 'qwerty123',
@@ -33,13 +33,17 @@ describe('Login e2e', () => {
 
     await createUser(app, userDto)
 
-    await request(app)
+    const response = await request(app)
       .post(`${AUTH_PATH}/login`)
       .send({
         loginOrEmail: userDto.login,
         password: userDto.password,
       })
-      .expect(HttpStatus.NoContent_204)
+      .expect(HttpStatus.Ok_200)
+
+    expect(response.body).toEqual({
+      accessToken: expect.any(String),
+    })
   })
 
   it('POST -> "/auth/login": should return 401 if login is wrong', async () => {
