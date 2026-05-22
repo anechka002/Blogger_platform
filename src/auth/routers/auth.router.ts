@@ -6,8 +6,14 @@ import {
 import {
   inputValidationResultMiddleware
 } from "../../core/middlewares/validation/input-validation-result.middleware";
+import {meHandler} from "./handlers/me.handler";
+import {
+  accessTokenGuardMiddleware
+} from "../middlewares/access.token.guard-middleware";
 
 export const authRouter = Router({});
 
 authRouter
-  .post('/login', loginInputValidation, inputValidationResultMiddleware, loginHandler);
+  .post('/login', loginInputValidation, inputValidationResultMiddleware, loginHandler)
+
+  .get('/me', accessTokenGuardMiddleware, meHandler)

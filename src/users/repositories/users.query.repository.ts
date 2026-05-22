@@ -7,6 +7,10 @@ import {
   mapToUserViewModel
 } from "../routers/mappers/map-to-user-view-model.utils";
 import {ObjectId} from "mongodb";
+import {IMeView} from "../../auth/types/me.view";
+import {
+  mapToMeViewModel
+} from "../../auth/routers/handlers/mappers/map-to-me-view-model.utils";
 
 
 export const usersQueryRepository = {
@@ -63,6 +67,18 @@ export const usersQueryRepository = {
       .getCollections()
       .userCollection.findOne({_id: new ObjectId(id)})
     return user ? mapToUserViewModel(user) : null
+  },
+
+  // Найти me по id
+  async findMeById(id: string): Promise<IMeView | null> {
+    if (!ObjectId.isValid(id)) {
+      return null;
+    }
+
+    const user = await db
+      .getCollections()
+      .userCollection.findOne({_id: new ObjectId(id)})
+    return user ? mapToMeViewModel(user) : null
   },
 
 }
