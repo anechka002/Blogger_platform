@@ -18,7 +18,7 @@ export const deleteCommentHandler = async (req: RequestWithParams<URIParamsComme
   const result = await commentsService.deleteComment(req.params.commentId, req.user.userId);
 
   if(result.status !== ResultStatus.Success) {
-    res.sendStatus(resultCodeToHttpException(result.status))
+    return res.sendStatus(resultCodeToHttpException(result.status))
   }
 
   return res.sendStatus(HttpStatus.NoContent_204)
