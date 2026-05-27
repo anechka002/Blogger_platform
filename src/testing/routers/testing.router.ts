@@ -5,11 +5,17 @@ import {db} from "../../db/mongo.db";
 export const testingRouter = Router({});
 
 testingRouter.delete('/all-data', async (req: Request, res: Response) => {
-  const { blogCollection, postCollection, userCollection } = db.getCollections();
-  await Promise.all([
-    blogCollection.deleteMany({}),
-    postCollection.deleteMany({}),
-    userCollection.deleteMany({}),
-  ])
-  res.sendStatus(HttpStatus.NoContent_204);
+  try {
+    const { blogCollection, postCollection, userCollection, commentCollection } = db.getCollections();
+    await Promise.all([
+      blogCollection.deleteMany({}),
+      postCollection.deleteMany({}),
+      userCollection.deleteMany({}),
+      commentCollection.deleteMany({}),
+    ])
+    res.sendStatus(HttpStatus.NoContent_204);
+  } catch (error) {
+    console.error('Error in DELETE /testing/all-data:', error);
+    res.sendStatus(HttpStatus.InternalServerError_500);
+  }
 });

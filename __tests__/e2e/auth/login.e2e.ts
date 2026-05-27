@@ -24,7 +24,7 @@ describe('Login e2e', () => {
     await clearDb(app)
   })
 
-  it('POST -> "/auth/login": should sign in user; status 200 and access token', async () => {
+  it('POST -> "/auth/login": should sign in user; status 200 and JWT token', async () => {
     const userDto = {
       login: 'Natalia',
       password: 'qwerty123',
