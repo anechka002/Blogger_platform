@@ -20,6 +20,15 @@ import {
   paginationAndSortingValidation
 } from "../../core/middlewares/validation/query-pagination-sorting.validation-middleware";
 import {PostSortField} from "./input/post-sort-field";
+import {
+  createCommentHandler
+} from "../../comments/routers/handlers/create-comment.handler";
+import {
+  commentInputDtoValidation
+} from "../../comments/validation/comment.input-dto.validation-middlewares";
+import {
+  accessTokenGuardMiddleware
+} from "../../auth/middlewares/access.token.guard-middleware";
 
 export const postsRouter = Router({});
 
@@ -35,3 +44,5 @@ postsRouter
   .put('/:id', baseAuthGuardMiddleware, idValidationMiddleware(), postInputDtoValidation, inputValidationResultMiddleware, updatePostHandler)
 
   .delete('/:id', baseAuthGuardMiddleware, idValidationMiddleware(), inputValidationResultMiddleware, deletePostHandler)
+
+  .post('/:postId/comments', accessTokenGuardMiddleware, idValidationMiddleware('postId'), commentInputDtoValidation, inputValidationResultMiddleware, createCommentHandler)
