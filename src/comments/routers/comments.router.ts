@@ -13,6 +13,7 @@ import {
 import {
   commentInputDtoValidation
 } from "../validation/comment.input-dto.validation-middlewares";
+import {deleteCommentHandler} from "./handlers/delete-comment.handler";
 
 export const commentsRouter = Router({});
 
@@ -20,3 +21,5 @@ commentsRouter
   .get('/:id', idValidationMiddleware(), inputValidationResultMiddleware, getCommentHandler)
 
   .put('/:commentId', accessTokenGuardMiddleware, idValidationMiddleware('commentId'), commentInputDtoValidation,  inputValidationResultMiddleware, updateCommentHandler)
+
+  .delete('/:commentId', accessTokenGuardMiddleware, idValidationMiddleware('commentId'), inputValidationResultMiddleware, deleteCommentHandler);
