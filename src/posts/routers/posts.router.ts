@@ -29,6 +29,12 @@ import {
 import {
   accessTokenGuardMiddleware
 } from "../../auth/middlewares/access.token.guard-middleware";
+import {
+  getCommentListHandler
+} from "../../comments/routers/handlers/get-comment-list.handler";
+import {
+  CommentSortField
+} from "../../comments/routers/input/comment-sort-field";
 
 export const postsRouter = Router({});
 
@@ -46,3 +52,5 @@ postsRouter
   .delete('/:id', baseAuthGuardMiddleware, idValidationMiddleware(), inputValidationResultMiddleware, deletePostHandler)
 
   .post('/:postId/comments', accessTokenGuardMiddleware, idValidationMiddleware('postId'), commentInputDtoValidation, inputValidationResultMiddleware, createCommentHandler)
+
+  .get('/:postId/comments', idValidationMiddleware('postId'), paginationAndSortingValidation(CommentSortField), inputValidationResultMiddleware, getCommentListHandler)
