@@ -3,10 +3,12 @@ import { SETTINGS } from '../core/settings/settings';
 import {Blog} from "../blogs/types/blog";
 import {Post} from "../posts/types/post";
 import {IUserDB} from "../users/types/user.db.type";
+import {ICommentDB} from "../comments/types/comment.db.type";
 
 const BLOG_COLLECTION_NAME = 'blogs';
 const POST_COLLECTION_NAME = 'posts';
 const USER_COLLECTION_NAME = 'users';
+const COMMENT_COLLECTION_NAME = 'comments';
 
 export const db = {
   client: null as MongoClient | null,
@@ -66,6 +68,7 @@ export const db = {
     blogCollection: Collection<Blog>;
     postCollection: Collection<Post>;
     userCollection: Collection<IUserDB>;
+    commentCollection: Collection<ICommentDB>;
   } {
     const database = db.getDb();
 
@@ -73,6 +76,7 @@ export const db = {
       blogCollection: database.collection<Blog>(BLOG_COLLECTION_NAME),
       postCollection: database.collection<Post>(POST_COLLECTION_NAME),
       userCollection: database.collection<IUserDB>(USER_COLLECTION_NAME),
+      commentCollection: database.collection<ICommentDB>(COMMENT_COLLECTION_NAME),
     };
   },
 }

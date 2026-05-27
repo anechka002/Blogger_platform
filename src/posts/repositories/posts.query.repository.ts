@@ -84,4 +84,17 @@ export const postsQueryRepository = {
 
     return mapToPostViewModel(foundPost)
   },
+
+  // Найти пост по ID
+  async findById(postId: string): Promise<PostViewDto | null> {
+    if(!ObjectId.isValid(postId)) {
+      return null
+    }
+
+    const foundPost = await db
+      .getCollections()
+      .postCollection.findOne({_id: new ObjectId(postId)});
+
+    return foundPost ? mapToPostViewModel(foundPost) : null
+  }
 }
