@@ -6,8 +6,17 @@ import {
 import {
   inputValidationResultMiddleware
 } from "../../core/middlewares/validation/input-validation-result.middleware";
+import {updateCommentHandler} from "./handlers/update-comment.handler";
+import {
+  accessTokenGuardMiddleware
+} from "../../auth/middlewares/access.token.guard-middleware";
+import {
+  commentInputDtoValidation
+} from "../validation/comment.input-dto.validation-middlewares";
 
 export const commentsRouter = Router({});
 
 commentsRouter
   .get('/:id', idValidationMiddleware(), inputValidationResultMiddleware, getCommentHandler)
+
+  .put('/:commentId', accessTokenGuardMiddleware, idValidationMiddleware('commentId'), commentInputDtoValidation,  inputValidationResultMiddleware, updateCommentHandler)
