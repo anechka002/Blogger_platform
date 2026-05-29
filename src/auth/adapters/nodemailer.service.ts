@@ -12,7 +12,7 @@ export const nodemailerService = {
     });
 
     const info = await transporter.sendMail({
-      from: '"Anna 👻" <SETTINGS.EMAIL>', // от кого: Gmail
+      from: `"Anna" <${SETTINGS.EMAIL}>`, // от кого: Gmail
       to:  email, // кому: Mail.ru
       subject: subject,
       html: message,

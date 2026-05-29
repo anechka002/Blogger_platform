@@ -41,5 +41,45 @@ export const usersRepository = {
     return await db
       .getCollections()
       .userCollection.findOne({$or: [{ email: loginOrEmail }, { login: loginOrEmail }]})
+  },
+
+  // Существует ли по логину или адресу электронной почты
+  async doesExistByLoginOrEmail(login: string, email: string): Promise<boolean> {
+    const user = await db
+      .getCollections()
+      .userCollection.findOne({$or: [{ email: email }, { login: login }]})
+    return !!user
+  },
+
+  // Найти пользователя по confirmationCode
+  async findByConfirmationCode(code: string): Promise<WithId<IUserDB> | null> {
+    return await db
+    .getCollections()
+    .userCollection.findOne({'emailConfirmation.confirmationCode': code})
+  },
+
+  // подтвердить email этому пользователю
+  async confirmEmail(userId: string): Promise<boolean> {
+    const result = await db
+    .getCollections()
+    .userCollection.updateOne(
+      {_id: new ObjectId(userId)},
+      {$set: { 'emailConfirmation.isConfirmed': true },}
+    )
+
+    return result.modifiedCount === 1
+  },
+
+  async updateConfirmationCode(userId: string, code: string, date: Date): Promise<boolean> {
+    const result = await db
+    .getCollections()
+      .userCollection.updateOne(
+        {_id: new ObjectId(userId)},
+        {$set: {
+          'emailConfirmation.confirmationCode': code,
+            'emailConfirmation.expirationDate': date
+        }},
+      )
+    return result.modifiedCount === 1
   }
 }
