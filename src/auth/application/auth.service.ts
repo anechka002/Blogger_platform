@@ -3,6 +3,10 @@ import {argon2Service} from "../adapters/argon.service";
 import {jwtService} from "../adapters/jwt.service";
 import {ResultStatus} from "../../core/result/resultCode";
 import {Result} from "../../core/result/result.type";
+import {IUserDB} from "../../users/types/user.db.type";
+import {add} from "date-fns";
+import {randomUUID} from "node:crypto";
+import {nodemailerService} from "../adapters/nodemailer.service";
 import {ILoginView} from "../types/login.view.type";
 
 export const authService = {
@@ -39,6 +43,67 @@ export const authService = {
       data: { accessToken },
       extensions: [],
     };
+  },
+
+  // Регистрацию пользователя
+  async registerUser(login: string, email: string, password: string): Promise<Result<IUserDB | null>> {
+    const userByLogin = await usersRepository.findByLogin(login);
+
+    if (userByLogin) {
+      return {
+        status: ResultStatus.BadRequest,
+        errorMessage: 'Bad Request',
+        data: null,
+        extensions: [{ field: 'login', message: 'Already Registered' }],
+      }
+    }
+
+    const userByEmail = await usersRepository.findByEmail(email);
+    if (userByEmail) {
+      return {
+        status: ResultStatus.BadRequest,
+        errorMessage: 'Bad Request',
+        data: null,
+        extensions: [{ field: 'email', message: 'Already Registered' }],
+      }
+    }
+
+    const passwordHash = await argon2Service.generateHash(password);
+
+    const newUser: IUserDB = {
+      login,
+      email,
+      passwordHash,
+      createdAt: new Date(),
+      emailConfirmation: {
+        confirmationCode: randomUUID(),
+        expirationDate: add(new Date(), {
+          hours: 1,
+          minutes: 3
+        }),
+        isConfirmed: false
+      }
+    }
+
+    const result = await usersRepository.create(newUser);
+
+    nodemailerService.sendEmail(
+      newUser.email,
+      'Registration confirmation',
+      `<h1>Thank you for registration</h1>
+       <p>To finish registration, please confirm your email:</p>
+       <p>Your confirmation code:</p>
+       <p>${newUser.emailConfirmation.confirmationCode}</p>
+       <a href="https://some-front.com/confirm-registration?code=${newUser.emailConfirmation.confirmationCode}">
+         Confirm email
+       </a>`
+    ).catch(error => console.log('error in send email', error));
+
+    return {
+      status: ResultStatus.Success,
+      extensions: [],
+      data: newUser
+    }
   },
 
 }
