@@ -20,6 +20,12 @@ import {
 import {
   confirmationCodeValidation
 } from "../../users/middleware/code.validation";
+import {
+  registrationEmailResendingHandler
+} from "./handlers/registration-email-resending.handler";
+import {
+  emailOnlyValidation
+} from "../../users/middleware/email-only.validation";
 
 export const authRouter = Router({});
 
@@ -31,3 +37,5 @@ authRouter
   .post('/registration', loginValidation, passwordValidation, emailValidation, inputValidationResultMiddleware, registrationHandler)
 
   .post('/registration-confirmation', confirmationCodeValidation, inputValidationResultMiddleware, registrationConfirmationHandler)
+
+  .post('/registration-email-resending', emailOnlyValidation, inputValidationResultMiddleware, registrationEmailResendingHandler)

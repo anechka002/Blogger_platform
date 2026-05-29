@@ -161,4 +161,64 @@ export const authService = {
     }
   },
 
+  // Повторно отправляет письмо для подтверждения регистрации
+  async registrationEmailResending(email: string): Promise<Result<IUserDB | null>> {
+    // Ищем user по email
+    const userByEmail = await usersRepository.findByEmail(email);
+
+    // Если user не найден → 400
+    if (!userByEmail) {
+      return {
+        status: ResultStatus.BadRequest,
+        errorMessage: 'Bad Request',
+        data: null,
+        extensions: [{ field: 'email', message: 'Email is not registered' }],
+      }
+    }
+
+    // Если user уже подтверждён → 400
+    if (userByEmail.emailConfirmation.isConfirmed) {
+      return {
+        status: ResultStatus.BadRequest,
+        errorMessage: 'Bad Request',
+        data: null,
+        extensions: [{ field: 'email', message: 'Email already confirmed' }],
+      }
+    }
+
+    // Генерируем новый confirmationCode
+    const newConfirmationCode = randomUUID()
+
+    // Генерируем новую expirationDate
+    const newExpirationDate = add(new Date(), {hours: 1,minutes: 3})
+
+    // Обновляем user в базе
+    const isUpdated = await usersRepository.updateConfirmationCode(userByEmail._id.toString(), newConfirmationCode, newExpirationDate)
+    if (!isUpdated) {
+      return {
+        status: ResultStatus.BadRequest,
+        errorMessage: 'Bad Request',
+        data: null,
+        extensions: [{field: 'email', message: 'Confirmation code was not updated'}],
+      }
+    }
+
+    // Отправляем новое письмо
+    nodemailerService.sendEmail(
+      userByEmail.email,
+      'Registration confirmation',
+      `<p>${newConfirmationCode}</p>
+       <a href="https://some-front.com/confirm-registration?code=${newConfirmationCode}">
+         Confirm email
+       </a>`
+    ).catch(error => console.log('error in send email', error));
+
+    // Возвращаем 204
+    return {
+      status: ResultStatus.Success,
+      extensions: [],
+      data: null
+    }
+  },
+
 }
