@@ -8,7 +8,7 @@ import {HttpStatus} from "../../types/http-statuses";
 import {ValidationErrorType} from "../../types/validation-error";
 import {createErrorMessages} from "../../errors/create-error-message";
 
-const formaValidationError = (error: ValidationError): ValidationErrorType => {
+const formValidationError = (error: ValidationError): ValidationErrorType => {
   const expressError = error as unknown as FieldValidationError;
 
   return {
@@ -23,7 +23,7 @@ export const inputValidationResultMiddleware = (
   next: NextFunction,
 ) => {
   const errors = validationResult(req)
-    .formatWith(formaValidationError)
+    .formatWith(formValidationError)
     .array({ onlyFirstError: true });
 
   if (errors.length > 0) {

@@ -29,6 +29,11 @@ export const usersService = {
       email,
       passwordHash,
       createdAt: new Date(),
+      emailConfirmation: {
+        confirmationCode: '',
+        expirationDate: new Date(),
+        isConfirmed: true,
+      }
     }
     return await usersRepository.create(newUser);
   },
