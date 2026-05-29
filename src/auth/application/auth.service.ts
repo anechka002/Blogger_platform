@@ -106,4 +106,59 @@ export const authService = {
     }
   },
 
+  // Подтверждает регистрацию пользователя по коду подтверждения
+  async registrationConfirmation(code: string): Promise<Result<IUserDB | null>> {
+    // Ищем пользователя, у которого emailConfirmation.confirmationCode === code
+    const user = await usersRepository.findByConfirmationCode(code);
+
+    // код не найден → 400
+    if (!user) {
+      return {
+        status: ResultStatus.BadRequest,
+        errorMessage: 'Bad Request',
+        data: null,
+        extensions: [{ field: 'code', message: 'Confirmation code is incorrect' }],
+      }
+    }
+
+    // email уже подтверждён → 400
+    if(user.emailConfirmation.isConfirmed) {
+      return {
+        status: ResultStatus.BadRequest,
+        errorMessage: 'Bad Request',
+        data: null,
+        extensions: [{ field: 'code', message: 'Email already confirmed' }],
+      }
+    }
+
+    // код истёк → 400
+    if(user.emailConfirmation.expirationDate < new Date()) {
+      return {
+        status: ResultStatus.BadRequest,
+        errorMessage: 'Bad Request',
+        data: null,
+        extensions: [{ field: 'code', message: 'Confirmation code is expired' }],
+      }
+    }
+
+    // Найди пользователя по id
+    // и обнови ему:
+    // emailConfirmation.isConfirmed = true
+    const isConfirmed = await usersRepository.confirmEmail(user._id.toString())
+    if (!isConfirmed) {
+      return {
+        status: ResultStatus.BadRequest,
+        errorMessage: 'Bad Request',
+        data: null,
+        extensions: [{ field: 'emailConfirmation.isConfirmed', message: 'Email was not confirmed' }],
+      }
+    }
+
+    return {
+      status: ResultStatus.Success,
+      extensions: [],
+      data: user
+    }
+  },
+
 }

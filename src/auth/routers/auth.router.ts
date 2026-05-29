@@ -14,6 +14,12 @@ import {
 import {passwordValidation} from "../../users/middleware/password.validation";
 import {loginValidation} from "../../users/middleware/login.validation";
 import {emailValidation} from "../../users/middleware/email.validation";
+import {
+  registrationConfirmationHandler
+} from "./handlers/registration-confirmation.handler";
+import {
+  confirmationCodeValidation
+} from "../../users/middleware/code.validation";
 
 export const authRouter = Router({});
 
@@ -23,3 +29,5 @@ authRouter
   .get('/me', accessTokenGuardMiddleware, inputValidationResultMiddleware, meHandler)
 
   .post('/registration', loginValidation, passwordValidation, emailValidation, inputValidationResultMiddleware, registrationHandler)
+
+  .post('/registration-confirmation', confirmationCodeValidation, inputValidationResultMiddleware, registrationConfirmationHandler)
