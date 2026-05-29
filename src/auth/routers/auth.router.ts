@@ -17,4 +17,4 @@ export const authRouter = Router({});
 authRouter
   .post('/login', loginOrEmailValidation, passwordValidation, inputValidationResultMiddleware, loginHandler)
 
-  .get('/me', accessTokenGuardMiddleware, meHandler)
+  .get('/me', accessTokenGuardMiddleware, inputValidationResultMiddleware, meHandler)
