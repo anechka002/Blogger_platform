@@ -16,7 +16,7 @@ export const registrationEmailResendingHandler = async (req: RequestWithBody<Reg
   const result = await authService.registrationEmailResending(email);
 
   if(result.status !== ResultStatus.Success) {
-    return res.status(resultCodeToHttpException(result.status)).send(result.status)
+    return res.status(resultCodeToHttpException(result.status)).send({errorsMessages: result.extensions})
   }
 
   return res.sendStatus(HttpStatus.NoContent_204)

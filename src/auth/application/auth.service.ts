@@ -117,7 +117,7 @@ export const authService = {
         status: ResultStatus.BadRequest,
         errorMessage: 'Bad Request',
         data: null,
-        extensions: [{ field: 'code', message: 'Confirmation code is incorrect' }],
+        extensions: [{ message: 'Confirmation code is incorrect', field: 'code' }],
       }
     }
 
@@ -127,7 +127,7 @@ export const authService = {
         status: ResultStatus.BadRequest,
         errorMessage: 'Bad Request',
         data: null,
-        extensions: [{ field: 'code', message: 'Email already confirmed' }],
+        extensions: [{ message: 'Email already confirmed', field: 'code' }],
       }
     }
 
@@ -137,7 +137,7 @@ export const authService = {
         status: ResultStatus.BadRequest,
         errorMessage: 'Bad Request',
         data: null,
-        extensions: [{ field: 'code', message: 'Confirmation code is expired' }],
+        extensions: [{ message: 'Confirmation code is expired', field: 'code', }],
       }
     }
 
@@ -150,7 +150,7 @@ export const authService = {
         status: ResultStatus.BadRequest,
         errorMessage: 'Bad Request',
         data: null,
-        extensions: [{ field: 'emailConfirmation.isConfirmed', message: 'Email was not confirmed' }],
+        extensions: [{ message: 'Email was not confirmed', field: 'emailConfirmation.isConfirmed' }],
       }
     }
 
@@ -172,7 +172,7 @@ export const authService = {
         status: ResultStatus.BadRequest,
         errorMessage: 'Bad Request',
         data: null,
-        extensions: [{ field: 'email', message: 'Email is not registered' }],
+        extensions: [{ message: 'Email is not registered', field: 'email' }],
       }
     }
 
@@ -182,7 +182,7 @@ export const authService = {
         status: ResultStatus.BadRequest,
         errorMessage: 'Bad Request',
         data: null,
-        extensions: [{ field: 'email', message: 'Email already confirmed' }],
+        extensions: [{ message: 'Email already confirmed', field: 'email' }],
       }
     }
 
@@ -199,7 +199,7 @@ export const authService = {
         status: ResultStatus.BadRequest,
         errorMessage: 'Bad Request',
         data: null,
-        extensions: [{field: 'email', message: 'Confirmation code was not updated'}],
+        extensions: [{ message: 'Confirmation code was not updated', field: 'email' }],
       }
     }
 

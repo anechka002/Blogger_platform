@@ -1,8 +1,8 @@
 import {ResultStatus} from "./resultCode";
 
 type ExtensionType = {
-  field: string | null;
   message: string;
+  field: string | null;
 };
 
 export type Result<T = null> = {

@@ -16,7 +16,7 @@ export const registrationConfirmationHandler = async (req: RequestWithBody<Regis
   const result = await authService.registrationConfirmation(code);
 
   if(result.status !== ResultStatus.Success) {
-    return res.status(resultCodeToHttpException(result.status)).send(result.status)
+    return res.status(resultCodeToHttpException(result.status)).send({errorsMessages: result.extensions})
   }
 
   return res.sendStatus(HttpStatus.NoContent_204)
