@@ -4,7 +4,6 @@ import {authService} from "./auth.service";
 import {ResultStatus} from "../../core/result/resultCode";
 import {nodemailerService} from "../adapters/nodemailer.service";
 import {addMinutes} from "date-fns";
-import {usersRepository} from "../../users/repositories/users.repository";
 
 describe("integration tests for authService", () => {
   let mongoServer: MongoMemoryServer;
@@ -12,7 +11,7 @@ describe("integration tests for authService", () => {
 
   beforeAll(async () => {
     // Выполнится один раз перед всеми тестами в этом describe.
-    // console.log('beforeAll')
+    console.log('beforeAll')
 
     mongoServer = await MongoMemoryServer.create()
     // Создаём временную MongoDB в памяти.
@@ -25,13 +24,13 @@ describe("integration tests for authService", () => {
     // Подключаем наш db-клиент к тестовой MongoDB.
   })
 
-  beforeEach(async () => {
-    // Выполнится перед каждым отдельным тестом.
-    // console.log('beforeEach')
-
-    await db.drop()
-    // Очищаем тестовую базу, чтобы каждый тест начинался с пустой БД.
-  })
+  // beforeEach(async () => {
+  //   // Выполнится перед каждым отдельным тестом.
+  //   // console.log('beforeEach')
+  //
+  //   await db.drop()
+  //   // Очищаем тестовую базу, чтобы каждый тест начинался с пустой БД.
+  // })
 
   afterEach(() => {
     // Выполнится после каждого отдельного теста.
@@ -44,7 +43,7 @@ describe("integration tests for authService", () => {
 
   afterAll(async () => {
     // Выполнится один раз после всех тестов.
-    // console.log('afterAll')
+    console.log('afterAll')
 
     await db.stop()
     // Закрываем соединение нашего приложения с MongoDB.
@@ -54,6 +53,14 @@ describe("integration tests for authService", () => {
   })
 
   describe("register user", () => {
+
+    beforeAll(async () => {
+      // Выполнится перед каждым отдельным тестом.
+      console.log('beforeAll, register user')
+
+      await db.drop()
+      // Очищаем тестовую базу, чтобы каждый тест начинался с пустой БД.
+    })
 
     let userSmtpEmail = 'smtp@anna.com'
     let userSmtpLogin = 'smtp'
@@ -113,6 +120,14 @@ describe("integration tests for authService", () => {
 
   describe("registration Confirmation", () => {
 
+    beforeAll(async () => {
+      // Выполнится перед каждым отдельным тестом.
+      console.log('beforeAll, registration Confirmation')
+
+      await db.drop()
+      // Очищаем тестовую базу, чтобы каждый тест начинался с пустой БД.
+    })
+
     const createUser = (confirmationCode: string, expirationDate: Date, email: string) => {
       return {
         login: 'Anna',
@@ -157,19 +172,19 @@ describe("integration tests for authService", () => {
     })
 
     it("should return user for existing and not expired confirmation code", async () => {
-      await db.getCollections().userCollection.insertOne(
-        createUser('goodCode', addMinutes(new Date(), 1), 'anna@anna.com')
-      )
+      let user = createUser('goodCode', addMinutes(new Date(), 1), 'good-code-user@anna.com')
+
+      await db.getCollections().userCollection.insertOne(user)
 
       const result = await authService.registrationConfirmation('goodCode')
 
       expect(result.status).toBe(ResultStatus.Success)
       expect(result.data).not.toBeNull()
       expect(result.data?.login).toBe('Anna')
-      expect(result.data?.email).toBe('anna@anna.com')
+      expect(result.data?.email).toBe('good-code-user@anna.com')
       expect(result.data?.emailConfirmation.isConfirmed).toBe(true)
 
-      const userFromDb = await db.getCollections().userCollection.findOne({email: 'anna@anna.com'})
+      const userFromDb = await db.getCollections().userCollection.findOne({email: 'good-code-user@anna.com'})
       expect(userFromDb?.emailConfirmation.isConfirmed).toBe(true)
     })
 
