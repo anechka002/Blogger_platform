@@ -154,10 +154,13 @@ export const authService = {
       }
     }
 
+    // после confirmEmail ещё раз найти пользователя
+    const confirmedUser = await usersRepository.findById(user._id.toString())
+
     return {
       status: ResultStatus.Success,
       extensions: [],
-      data: user
+      data: confirmedUser
     }
   },
 
