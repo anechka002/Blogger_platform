@@ -26,6 +26,11 @@ import {
 import {
   emailOnlyValidation
 } from "../../users/middleware/email-only.validation";
+import {refreshTokenHandler} from "./handlers/refresh-token.handler";
+import {
+  refreshTokenGuardMiddleware
+} from "../middlewares/refresh.token.guard-middleware";
+import {logoutHandler} from "./handlers/logout.handler";
 
 export const authRouter = Router({});
 
@@ -39,3 +44,7 @@ authRouter
   .post('/registration-confirmation', confirmationCodeValidation, inputValidationResultMiddleware, registrationConfirmationHandler)
 
   .post('/registration-email-resending', emailOnlyValidation, inputValidationResultMiddleware, registrationEmailResendingHandler)
+
+  .post('/refresh-token', refreshTokenGuardMiddleware, inputValidationResultMiddleware, refreshTokenHandler)
+
+  .post('/logout', refreshTokenGuardMiddleware, inputValidationResultMiddleware, logoutHandler)

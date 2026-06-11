@@ -11,7 +11,7 @@ export const SETTINGS =  {
   ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET as string, // Secret key для access token.
   ACCESS_TOKEN_TIME: process.env.ACCESS_TOKEN_TIME as SignOptions['expiresIn'], // Время жизни access token.
 
-  REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET, // Secret key для refresh token.
+  REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET as string, // Secret key для refresh token.
   REFRESH_TOKEN_TIME: process.env.REFRESH_TOKEN_TIME as SignOptions['expiresIn'], // // Время жизни refresh token.
 
   DB_TYPE: process.env.DB_TYPE, // Тип базы данных.

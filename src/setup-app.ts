@@ -13,9 +13,11 @@ import {testingRouter} from "./testing/routers/testing.router";
 import {usersRouter} from "./users/routers/users.router";
 import {authRouter} from "./auth/routers/auth.router";
 import {commentsRouter} from "./comments/routers/comments.router";
+import cookieParser from "cookie-parser";
 
 export const setupApp = (app: Express) => {
   app.use(express.json()); // middleware для парсинга JSON в теле запроса
+  app.use(cookieParser()) // middleware для парсинга cookies из запроса
 
   // основной роут
   app.get("/", (req, res) => {

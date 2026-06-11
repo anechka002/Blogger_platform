@@ -4,11 +4,15 @@ import {Blog} from "../blogs/types/blog";
 import {Post} from "../posts/types/post";
 import {IUserDB} from "../users/types/user.db.type";
 import {ICommentDB} from "../comments/types/comment.db.type";
+import {
+  IRefreshTokenBlacklistDB
+} from "../auth/types/refresh-token-blacklist.db.type";
 
 const BLOG_COLLECTION_NAME = 'blogs';
 const POST_COLLECTION_NAME = 'posts';
 const USER_COLLECTION_NAME = 'users';
 const COMMENT_COLLECTION_NAME = 'comments';
+const REFRESH_TOKEN_BLACKLIST_COLLECTION_NAME = 'refreshTokenBlacklist';
 
 export const db = {
   client: null as MongoClient | null,
@@ -64,11 +68,19 @@ export const db = {
     }
   },
 
+  async createIndex() {
+    await db.getCollections().refreshTokenBlacklistCollection.createIndex(
+      {expiresDate: 1},
+      {expireAfterSeconds: 0}
+    )
+  },
+
   getCollections(): {
     blogCollection: Collection<Blog>;
     postCollection: Collection<Post>;
     userCollection: Collection<IUserDB>;
     commentCollection: Collection<ICommentDB>;
+    refreshTokenBlacklistCollection: Collection<IRefreshTokenBlacklistDB>
   } {
     const database = db.getDb();
 
@@ -77,6 +89,7 @@ export const db = {
       postCollection: database.collection<Post>(POST_COLLECTION_NAME),
       userCollection: database.collection<IUserDB>(USER_COLLECTION_NAME),
       commentCollection: database.collection<ICommentDB>(COMMENT_COLLECTION_NAME),
+      refreshTokenBlacklistCollection: database.collection<IRefreshTokenBlacklistDB>(REFRESH_TOKEN_BLACKLIST_COLLECTION_NAME)
     };
   },
 }

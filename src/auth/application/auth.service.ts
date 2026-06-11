@@ -8,8 +8,15 @@ import {add} from "date-fns";
 import {randomUUID} from "node:crypto";
 import {nodemailerService} from "../adapters/nodemailer.service";
 import {ILoginView} from "../types/login.view.type";
+import {
+  refreshTokenBlacklistRepository
+} from "../repositories/refresh-token-blacklist.repository";
+import {
+  IRefreshTokenBlacklistDB
+} from "../types/refresh-token-blacklist.db.type";
 
 export const authService = {
+  // Login пользователя
   async loginUser(loginOrEmail: string, password: string): Promise<Result<ILoginView | null>> {
     const user = await usersRepository.findByLoginOrEmail(loginOrEmail);
 
@@ -36,16 +43,16 @@ export const authService = {
       };
     }
 
-    const accessToken = await jwtService.createJWT(user._id.toString())
+    const tokens = await jwtService.createJWT(user._id.toString())
 
     return {
       status: ResultStatus.Success,
-      data: { accessToken },
+      data: tokens,
       extensions: [],
     };
   },
 
-  // Регистрацию пользователя
+  // Регистрация пользователя
   async registerUser(login: string, email: string, password: string): Promise<Result<IUserDB | null>> {
     const userByLogin = await usersRepository.findByLogin(login);
 
@@ -223,5 +230,114 @@ export const authService = {
       data: null
     }
   },
+
+  // Обновляем пару токенов: выдаём новый accessToken и новый refreshToken
+  async refreshToken(userId: string, oldRefreshToken: string): Promise<Result<ILoginView | null>> {
+    // Ищем пользователя в базе по userId, который пришёл из middleware
+    const user = await usersRepository.findById(userId);
+    if (!user) {
+      return {
+        status: ResultStatus.Unauthorized,
+        data: null,
+        errorMessage: 'Unauthorized',
+        extensions: [{ field: 'refreshToken', message: 'Unauthorized' }],
+      }
+    }
+
+    const tokens = await jwtService.createJWT(user._id.toString())
+
+    const payload = await jwtService.verifyRefreshToken(oldRefreshToken)
+    if (!payload) {
+      return {
+        status: ResultStatus.Unauthorized,
+        data: null,
+        errorMessage: 'Unauthorized',
+        extensions: [],
+      }
+    }
+
+    const refreshToken: IRefreshTokenBlacklistDB = {
+      token: oldRefreshToken,
+      userId,
+      createdAt: new Date(),
+      expiresDate: new Date(payload.exp * 1000)
+    }
+
+    await refreshTokenBlacklistRepository.addTokenToBlackList(refreshToken)
+
+    return {
+      status: ResultStatus.Success,
+      data: tokens,
+      extensions: [],
+    };
+  },
+
+  // Logout пользователя
+  async logoutUser(userId: string, oldRefreshToken: string): Promise<Result<boolean | null>> {
+    // Ищем пользователя в базе по userId, который пришёл из middleware
+    const user = await usersRepository.findById(userId);
+    if (!user) {
+      return {
+        status: ResultStatus.Unauthorized,
+        data: null,
+        errorMessage: 'Unauthorized',
+        extensions: [{ field: 'logout', message: 'Unauthorized' }],
+      }
+    }
+
+    // Проверяем, лежит ли этот refresh token уже в blacklist
+    const isBlacklisted = await refreshTokenBlacklistRepository.isTokenBlackListed(oldRefreshToken)
+    if(isBlacklisted) {
+      return {
+        status: ResultStatus.Unauthorized,
+        data: null,
+        errorMessage: 'Unauthorized',
+        extensions: [{ field: 'logout', message: 'Unauthorized' }],
+      }
+    }
+
+    // Проверяем сам refresh token:
+    // валидная ли подпись, не истёк ли срок жизни
+    const payload = await jwtService.verifyRefreshToken(oldRefreshToken)
+    if (!payload) {
+      return {
+        status: ResultStatus.Unauthorized,
+        data: null,
+        errorMessage: 'Unauthorized',
+        extensions: [],
+      }
+    }
+
+    // Проверяем, что userId из middleware совпадает с userId внутри refresh token.
+    // Если не совпадает — значит токен не принадлежит этому пользователю.
+    if(payload.userId !== userId) {
+      return {
+        status: ResultStatus.Unauthorized,
+        data: null,
+        errorMessage: 'Unauthorized',
+        extensions: [],
+      }
+    }
+
+    // Создаём документ, который положим в blacklist
+    const refreshToken: IRefreshTokenBlacklistDB = {
+      token: oldRefreshToken,
+      userId,
+      createdAt: new Date(),
+      expiresDate: new Date(payload.exp * 1000)
+    }
+
+
+    // Добавляем старый refresh token в blacklist
+    // После этого им уже нельзя будет сделать refresh
+    await refreshTokenBlacklistRepository.addTokenToBlackList(refreshToken)
+
+    // Возвращаем успешный результат
+    return {
+      status: ResultStatus.Success,
+      data: true,
+      extensions: [],
+    };
+  }
 
 }

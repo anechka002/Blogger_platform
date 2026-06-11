@@ -14,7 +14,7 @@ export const accessTokenGuardMiddleware = async (req: Request, res: Response, ne
     return res.sendStatus(HttpStatus.Unauthorized_401);
   }
 
-  const payload = await jwtService.verifyJwt(token);
+  const payload = await jwtService.verifyAccessToken(token);
 
   if(payload) {
 

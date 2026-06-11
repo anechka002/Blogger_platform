@@ -12,11 +12,13 @@ export const loginHandler = async (req: RequestWithBody<LoginDto>, res: Response
   const { loginOrEmail, password } = req.body;
 
   const result = await authService.loginUser(loginOrEmail, password)
-  // console.log(result.data)
+  // console.log(result)
 
   if(result.status !== ResultStatus.Success) {
     return res.status(resultCodeToHttpException(result.status)).send(result.status)
   }
 
-  return res.status(HttpStatus.Ok_200).send(result.data);
+  res.cookie('refreshToken', result.data?.refreshToken, { httpOnly: true, secure: true, sameSite: 'strict', path: '/', maxAge: 2 * 60 * 1000 }) // 2 min
+
+  return res.status(HttpStatus.Ok_200).send({accessToken: result.data?.accessToken});
 }

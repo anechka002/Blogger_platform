@@ -9,6 +9,7 @@ const bootstrap = async () => {
   const PORT = SETTINGS.PORT;
 
   await db.run(SETTINGS.MONGO_URL);
+  await db.createIndex()
 
   app.listen(PORT, () => {
     console.log(`Я завелся на ${PORT} порту`);
