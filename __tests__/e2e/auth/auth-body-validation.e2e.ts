@@ -85,4 +85,16 @@ describe('auth body validation e2e', () => {
     expect(response.body.errorsMessages[0].field).toBe('email')
   })
 
+  it('POST -> "auth/login": should return error if password is incorrect; status 400', async () => {
+    const response = await request(app)
+      .post(`${AUTH_PATH}/login`)
+      .send({
+        loginOrEmail: 'Natalia',
+        password: '12345',
+      })
+      .expect(HttpStatus.BadRequest_400)
+
+    expect(response.body.errorsMessages[0].field).toBe('password')
+  })
+
 })
