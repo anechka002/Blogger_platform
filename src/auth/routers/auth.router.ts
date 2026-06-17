@@ -31,19 +31,20 @@ import {
   refreshTokenGuardMiddleware
 } from "../middlewares/refresh.token.guard-middleware";
 import {logoutHandler} from "./handlers/logout.handler";
+import {rateLimitMiddleware} from "../middlewares/rate.limit.middleware";
 
 export const authRouter = Router({});
 
 authRouter
-  .post('/login', loginOrEmailValidation, passwordValidation, inputValidationResultMiddleware, loginHandler)
+  .post('/login', rateLimitMiddleware, loginOrEmailValidation, passwordValidation, inputValidationResultMiddleware, loginHandler)
 
   .get('/me', accessTokenGuardMiddleware, inputValidationResultMiddleware, meHandler)
 
-  .post('/registration', loginValidation, passwordValidation, emailValidation, inputValidationResultMiddleware, registrationHandler)
+  .post('/registration', rateLimitMiddleware, loginValidation, passwordValidation, emailValidation, inputValidationResultMiddleware, registrationHandler)
 
-  .post('/registration-confirmation', confirmationCodeValidation, inputValidationResultMiddleware, registrationConfirmationHandler)
+  .post('/registration-confirmation', rateLimitMiddleware, confirmationCodeValidation, inputValidationResultMiddleware, registrationConfirmationHandler)
 
-  .post('/registration-email-resending', emailOnlyValidation, inputValidationResultMiddleware, registrationEmailResendingHandler)
+  .post('/registration-email-resending', rateLimitMiddleware, emailOnlyValidation, inputValidationResultMiddleware, registrationEmailResendingHandler)
 
   .post('/refresh-token', refreshTokenGuardMiddleware, inputValidationResultMiddleware, refreshTokenHandler)
 

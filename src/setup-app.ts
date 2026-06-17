@@ -25,7 +25,7 @@ export const setupApp = (app: Express) => {
   });
 
   // app.use((req, res, next) => {
-  //   console.log(req.method, req.path)
+  //   console.log('REQUEST:', req.method, req.path);
   //   next()
   // })
 
