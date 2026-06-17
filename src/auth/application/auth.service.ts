@@ -273,7 +273,7 @@ export const authService = {
   },
 
   // Logout пользователя
-  async logoutUser(userId: string, oldRefreshToken: string): Promise<Result<boolean | null>> {
+  async logoutUser({userId, oldRefreshToken}:{userId: string, oldRefreshToken: string}): Promise<Result<boolean | null>> {
     // Ищем пользователя в базе по userId, который пришёл из middleware
     const user = await usersRepository.findById(userId);
     if (!user) {

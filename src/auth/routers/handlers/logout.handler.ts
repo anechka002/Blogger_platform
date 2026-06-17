@@ -15,7 +15,7 @@ export const logoutHandler = async (req: Request, res: Response) => {
   const oldRefreshToken = req.cookies.refreshToken
   // console.log('logoutHandler-cookies: ', oldRefreshToken)
 
-  const result = await authService.logoutUser(userId, oldRefreshToken)
+  const result = await authService.logoutUser({userId, oldRefreshToken})
   if(result.status !== ResultStatus.Success) {
     return res.status(resultCodeToHttpException(result.status)).send(result.status)
   }
