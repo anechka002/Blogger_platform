@@ -7,8 +7,10 @@ import { db } from '../../../src/db/mongo.db'
 import { SETTINGS } from '../../../src/core/settings/settings'
 import { clearDb } from '../../utils/clear-db'
 import {nodemailerService} from "../../../src/auth/adapters/nodemailer.service";
-import {randomUUID} from "node:crypto";
 import {registerUser} from "../../utils/auth/register-user";
+import {
+  apiRequestLogsRepository
+} from "../../../src/auth/repositories/api-request-logs.repository";
 
 describe('Registration-email-resending e2e', () => {
   const app = express()
@@ -18,12 +20,24 @@ describe('Registration-email-resending e2e', () => {
     await db.run(SETTINGS.MONGO_URL)
   })
 
-  afterAll(async () => {
-    await db.stop()
-  })
-
   beforeEach(async () => {
     await clearDb(app)
+
+    jest
+      .spyOn(apiRequestLogsRepository, 'countRecentRequests')
+      .mockResolvedValue(0)
+
+    jest
+      .spyOn(apiRequestLogsRepository, 'create')
+      .mockResolvedValue(true)
+  })
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
+  afterAll(async () => {
+    await db.stop()
   })
 
   it('POST -> "/auth/registration-email-resending": should send email with new code if user exists but not confirmed yet; status 204', async () => {
@@ -69,6 +83,19 @@ describe('Registration-email-resending e2e', () => {
       .post(`${AUTH_PATH}/registration-email-resending`)
       .send({email: userDto.email})
       .expect(HttpStatus.BadRequest_400)
+  })
+
+  it('POST -> "/auth/registration-email-resending": should return 429 if rate limit exceeded', async () => {
+    jest
+      .spyOn(apiRequestLogsRepository, 'countRecentRequests')
+      .mockResolvedValue(5)
+
+    await request(app)
+      .post(`${AUTH_PATH}/registration-email-resending`)
+      .send({
+        email: 'natalia@gmail.com',
+      })
+      .expect(HttpStatus.ManyRequest_429)
   })
 
 })
