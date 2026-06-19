@@ -3,7 +3,7 @@ import {SETTINGS} from "../../core/settings/settings";
 import {JWTPayloadWithUserId} from "../types/jwt-payload-with-userId.type";
 
 export const jwtService = {
-  async createJWT(userId: string): Promise<{accessToken: string, refreshToken: string}> {
+  async createJWT(userId: string, deviceId: string): Promise<{accessToken: string, refreshToken: string}> {
     const accessToken = jwt.sign(
       { userId },
       SETTINGS.ACCESS_TOKEN_SECRET,
@@ -11,7 +11,7 @@ export const jwtService = {
     )
 
     const refreshToken = jwt.sign(
-      { userId },
+      { userId, deviceId },
       SETTINGS.REFRESH_TOKEN_SECRET,
       { expiresIn: SETTINGS.REFRESH_TOKEN_TIME }
     )

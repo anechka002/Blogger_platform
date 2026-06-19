@@ -14,15 +14,17 @@ import {
 import {
   IRefreshTokenBlacklistDB
 } from "../types/refresh-token-blacklist.db.type";
+import {ISessionDB} from "../types/session.db.type";
+import {
+  deviceSessionsRepository
+} from "../repositories/device-sessions.repository";
 
 export const authService = {
   // Login пользователя
-  async loginUser(loginOrEmail: string, password: string): Promise<Result<ILoginView | null>> {
+  async loginUser({loginOrEmail, password, deviceName, ip}:{loginOrEmail: string, password: string, deviceName: string, ip: string}): Promise<Result<ILoginView | null>> {
+    // Ищем пользователя по login или email
     const user = await usersRepository.findByLoginOrEmail(loginOrEmail);
-
-    // console.log('user: ', user)
-    // console.log('passwordHash: ', user?.passwordHash)
-
+    // Если пользователь не найден — логин невозможен
     if (!user) {
       return {
         status: ResultStatus.Unauthorized,
@@ -32,8 +34,9 @@ export const authService = {
       }
     }
 
+    // Проверяем пароль: сравниваем обычный password из запроса с passwordHash из базы
     const isPasswordCorrect = await argon2Service.checkPassword(password, user.passwordHash)
-
+    // Если пароль неверный — сессию и токены не создаём
     if (!isPasswordCorrect) {
       return {
         status: ResultStatus.Unauthorized,
@@ -43,8 +46,45 @@ export const authService = {
       };
     }
 
-    const tokens = await jwtService.createJWT(user._id.toString())
+    // Создаём уникальный id устройства/сессии.
+    // Один login с одного браузера = одна device session.
+    const deviceId = randomUUID();
 
+    // Создаём accessToken и refreshToken.
+    // В payload кладём userId и deviceId, чтобы потом понимать, какой пользователь и какая сессия делает refresh/logout.
+    const tokens = await jwtService.createJWT(user._id.toString(), deviceId)
+
+    // Декодируем refreshToken, чтобы достать iat и exp.
+    // iat — когда токен создан.
+    // exp — когда токен истекает.
+    const payload = await jwtService.decodeJWT(tokens.refreshToken)
+    // На всякий случай проверяем, что payload существует и внутри есть iat/exp.
+    if(!payload || !payload.iat || payload.exp) {
+      return {
+        status: ResultStatus.Unauthorized,
+        data: null,
+        errorMessage: 'Invalid token payload',
+        extensions: [],
+      }
+    }
+
+    // Создаём документ активной сессии устройства.
+    // Эта запись показывает, что пользователь залогинен с конкретного браузера/устройства.
+    const session: ISessionDB = {
+      user_id: user._id.toString(),
+      device_id: deviceId,
+      // JWT хранит iat/exp в секундах, а new Date() ждёт миллисекунды, поэтому умножаем на 1000.
+      iat: new Date(payload.iat * 1000),
+      device_name: deviceName,
+      ip,
+      // Дата, когда refreshToken и эта session должны протухнуть
+      exp: new Date(payload.exp * 1000)
+    }
+
+    // Сохраняем активную сессию устройства в БД.
+    await deviceSessionsRepository.addSession(session)
+
+    // Возвращаем токены handler-у
     return {
       status: ResultStatus.Success,
       data: tokens,
@@ -244,7 +284,8 @@ export const authService = {
       }
     }
 
-    const tokens = await jwtService.createJWT(user._id.toString())
+    const deviceId = randomUUID();
+    const tokens = await jwtService.createJWT(user._id.toString(), deviceId);
 
     const payload = await jwtService.verifyRefreshToken(oldRefreshToken)
     if (!payload) {
