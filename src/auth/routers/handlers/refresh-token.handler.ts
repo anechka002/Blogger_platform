@@ -8,19 +8,22 @@ import {
 
 export const refreshTokenHandler = async (req: Request, res: Response) => {
   const userId = req.user?.userId
-  if (!userId) {
+  const oldIat = req.user?.iat
+  const deviceId = req.user?.deviceId
+  const oldRefreshToken =  req.cookies.refreshToken
+
+  if (!userId || !oldIat || !deviceId || !oldRefreshToken) {
     return res.sendStatus(HttpStatus.Unauthorized_401)
   }
 
-  const oldRefreshToken =  req.cookies.refreshToken
   // console.log('cookies: ', refreshToken)
 
-  const result = await authService.refreshToken(userId, oldRefreshToken)
+  const result = await authService.refreshToken({userId, deviceId, oldIat})
   if(result.status !== ResultStatus.Success) {
     return res.status(resultCodeToHttpException(result.status)).send(result.status)
   }
 
-  res.cookie('refreshToken', result.data?.refreshToken, { httpOnly: true, secure: true, sameSite: 'strict', path: '/', maxAge: 2 * 60 * 1000 })
+  res.cookie('refreshToken', result.data?.refreshToken, { httpOnly: true, secure: true, sameSite: 'strict', path: '/', maxAge: 2 * 60 * 1000 }) // 2 min
 
   // console.log('new refreshToken:', result.data?.refreshToken)
 

@@ -59,7 +59,7 @@ export const authService = {
     // exp — когда токен истекает.
     const payload = await jwtService.decodeJWT(tokens.refreshToken)
     // На всякий случай проверяем, что payload существует и внутри есть iat/exp.
-    if(!payload || !payload.iat || payload.exp) {
+    if(!payload || !payload.iat || !payload.exp) {
       return {
         status: ResultStatus.Unauthorized,
         data: null,
@@ -271,10 +271,11 @@ export const authService = {
     }
   },
 
-  // Обновляем пару токенов: выдаём новый accessToken и новый refreshToken
-  async refreshToken(userId: string, oldRefreshToken: string): Promise<Result<ILoginView | null>> {
-    // Ищем пользователя в базе по userId, который пришёл из middleware
+  // Обновляем пару токенов: выдаём новый accessToken и новый refreshToken для уже существующей device session
+  async refreshToken({oldIat, userId, deviceId}: {userId: string, oldIat: Date, deviceId: string}): Promise<Result<ILoginView | null>> {
+    // Ищем пользователя в базе по userId, который пришёл из middleware в req.user
     const user = await usersRepository.findById(userId);
+    // Если пользователя нет — значит refresh делать нельзя
     if (!user) {
       return {
         status: ResultStatus.Unauthorized,
@@ -284,10 +285,16 @@ export const authService = {
       }
     }
 
-    const deviceId = randomUUID();
+    // Создаём новую пару токенов.
+    // deviceId оставляем тот же самый, потому что это всё ещё та же device session.
     const tokens = await jwtService.createJWT(user._id.toString(), deviceId);
 
-    const payload = await jwtService.verifyRefreshToken(oldRefreshToken)
+    // Декодируем НОВЫЙ refreshToken, чтобы достать из него новые iat и exp.
+    // iat — когда новый refreshToken создан
+    // exp — когда новый refreshToken протухнет
+    const payload = await jwtService.decodeJWT(tokens.refreshToken)
+
+    // Если payload почему-то не достался, считаем, что refresh выполнить нельзя
     if (!payload) {
       return {
         status: ResultStatus.Unauthorized,
@@ -297,15 +304,25 @@ export const authService = {
       }
     }
 
-    const refreshToken: IRefreshTokenBlacklistDB = {
-      token: oldRefreshToken,
-      userId,
-      createdAt: new Date(),
-      expiresDate: new Date(payload.exp * 1000)
+    // JWT хранит iat и exp в секундах, а Date работает с миллисекундами.
+    const newIat = new Date(payload.iat * 1000)
+    const newExp = new Date(payload.exp * 1000)
+
+    // Обновляем старую device session в БД:
+    // найти старую session по: userId + deviceId + oldIat и заменить в ней: iat → newIat и exp → newExp
+    const isSessionsUpdate = await deviceSessionsRepository.updateSessionByDeviceIdAndIat({userId: user._id.toString(), deviceId, oldIat, newIat, newExp})
+
+    // Если session не обновилась, значит старая session не найдена или уже неактуальна
+    if(!isSessionsUpdate) {
+      return {
+        status: ResultStatus.Unauthorized,
+        data: null,
+        errorMessage: "Session was not updated",
+        extensions: [],
+      }
     }
 
-    await refreshTokenBlacklistRepository.addTokenToBlackList(refreshToken)
-
+    // Если всё хорошо: session обновлена, новые токены можно вернуть клиенту
     return {
       status: ResultStatus.Success,
       data: tokens,
