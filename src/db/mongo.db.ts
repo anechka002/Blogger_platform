@@ -5,7 +5,7 @@ import {Post} from "../posts/types/post";
 import {IUserDB} from "../users/types/user.db.type";
 import {ICommentDB} from "../comments/types/comment.db.type";
 import {ApiRequestLogDb} from "../auth/types/api-request-log.db.type";
-import {ISessionDB} from "../auth/types/session.db.type";
+import {ISessionDB} from "../devices/types/session.db.type";
 
 const BLOG_COLLECTION_NAME = 'blogs';
 const POST_COLLECTION_NAME = 'posts';

@@ -2,7 +2,7 @@ import {db} from "../../db/mongo.db";
 import {ISessionDB} from "../types/session.db.type";
 import {WithId} from "mongodb";
 
-export const deviceSessionsRepository = {
+export const devicesSessionsRepository = {
   // Сохраняет активную сессию устройства.
   // Одна запись = один успешный login пользователя с конкретного браузера/устройства.
   async addSession(session: ISessionDB): Promise<boolean> {
@@ -64,5 +64,7 @@ export const deviceSessionsRepository = {
     // true, если Mongo реально удалила одну запись
     return result.deletedCount === 1
   }
+
+
 
 }

@@ -8,10 +8,10 @@ import {add} from "date-fns";
 import {randomUUID} from "node:crypto";
 import {nodemailerService} from "../adapters/nodemailer.service";
 import {ILoginView} from "../types/login.view.type";
-import {ISessionDB} from "../types/session.db.type";
+import {ISessionDB} from "../../devices/types/session.db.type";
 import {
-  deviceSessionsRepository
-} from "../repositories/device-sessions.repository";
+  devicesSessionsRepository
+} from "../../devices/repositories/devices-sessions.repository";
 
 export const authService = {
   // Login пользователя
@@ -76,7 +76,7 @@ export const authService = {
     }
 
     // Сохраняем активную сессию устройства в БД.
-    await deviceSessionsRepository.addSession(session)
+    await devicesSessionsRepository.addSession(session)
 
     // Возвращаем токены handler-у
     return {
@@ -304,7 +304,7 @@ export const authService = {
 
     // Обновляем старую device session в БД:
     // найти старую session по: userId + deviceId + oldIat и заменить в ней: iat → newIat и exp → newExp
-    const isSessionsUpdate = await deviceSessionsRepository.updateSessionByDeviceIdAndIat({userId: user._id.toString(), deviceId, oldIat, newIat, newExp})
+    const isSessionsUpdate = await devicesSessionsRepository.updateSessionByDeviceIdAndIat({userId: user._id.toString(), deviceId, oldIat, newIat, newExp})
 
     // Если session не обновилась, значит старая session не найдена или уже неактуальна
     if(!isSessionsUpdate) {
@@ -340,7 +340,7 @@ export const authService = {
 
     // Удаляем активную session текущего устройства.
     // Ищем именно по userId + deviceId + oldIat, чтобы удалить конкретную session, с которой пришёл refreshToken.
-    const isSessionDeleted = await deviceSessionsRepository.deleteSession({userId: user._id.toString(), deviceId, oldIat})
+    const isSessionDeleted = await devicesSessionsRepository.deleteSession({userId: user._id.toString(), deviceId, oldIat})
     if(!isSessionDeleted) {
       return {
         status: ResultStatus.NotFound,
