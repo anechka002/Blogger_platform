@@ -7,13 +7,17 @@ import {RequestWithUserId} from "../../../core/types/request-types";
 import {IDeviceView} from "../../types/device.view.type";
 
 export const getAllDevicesHandler = async (req: RequestWithUserId, res: Response<IDeviceView[]>) => {
+  // userId положил refreshTokenGuardMiddleware после успешной проверки refreshToken и session.
   const userId = req.user?.userId
 
+  // Если userId отсутствует — пользователь не авторизован.
   if (!userId) {
     return res.sendStatus(HttpStatus.Unauthorized_401)
   }
 
+  // Получаем список всех активных устройств текущего пользователя.
   const devices = await devicesQueryRepository.findAllDevices(userId);
 
+  // Возвращаем массив устройств.
   return res.status(HttpStatus.Ok_200).send(devices)
 }
