@@ -8,12 +8,6 @@ import {add} from "date-fns";
 import {randomUUID} from "node:crypto";
 import {nodemailerService} from "../adapters/nodemailer.service";
 import {ILoginView} from "../types/login.view.type";
-import {
-  refreshTokenBlacklistRepository
-} from "../repositories/refresh-token-blacklist.repository";
-import {
-  IRefreshTokenBlacklistDB
-} from "../types/refresh-token-blacklist.db.type";
 import {ISessionDB} from "../types/session.db.type";
 import {
   deviceSessionsRepository
@@ -330,9 +324,9 @@ export const authService = {
     };
   },
 
-  // Logout пользователя
-  async logoutUser({userId, oldRefreshToken}:{userId: string, oldRefreshToken: string}): Promise<Result<boolean | null>> {
-    // Ищем пользователя в базе по userId, который пришёл из middleware
+  // Logout пользователя: завершает текущую device session
+  async logoutUser({userId, deviceId, oldIat}:{userId: string, deviceId: string, oldIat: Date}): Promise<Result<boolean | null>> {
+    // Проверяем, что пользователь действительно существует
     const user = await usersRepository.findById(userId);
     if (!user) {
       return {
@@ -343,52 +337,18 @@ export const authService = {
       }
     }
 
-    // Проверяем, лежит ли этот refresh token уже в blacklist
-    const isBlacklisted = await refreshTokenBlacklistRepository.isTokenBlackListed(oldRefreshToken)
-    if(isBlacklisted) {
-      return {
-        status: ResultStatus.Unauthorized,
-        data: null,
-        errorMessage: 'Unauthorized',
-        extensions: [{ field: 'logout', message: 'Unauthorized' }],
-      }
-    }
 
-    // Проверяем сам refresh token:
-    // валидная ли подпись, не истёк ли срок жизни
-    const payload = await jwtService.verifyRefreshToken(oldRefreshToken)
-    if (!payload) {
+    // Удаляем активную session текущего устройства.
+    // Ищем именно по userId + deviceId + oldIat, чтобы удалить конкретную session, с которой пришёл refreshToken.
+    const isSessionDeleted = await deviceSessionsRepository.deleteSession({userId: user._id.toString(), deviceId, oldIat})
+    if(!isSessionDeleted) {
       return {
-        status: ResultStatus.Unauthorized,
-        data: null,
-        errorMessage: 'Unauthorized',
+        status: ResultStatus.NotFound,
+        data: false,
+        errorMessage: 'NotFound',
         extensions: [],
       }
     }
-
-    // Проверяем, что userId из middleware совпадает с userId внутри refresh token.
-    // Если не совпадает — значит токен не принадлежит этому пользователю.
-    if(payload.userId !== userId) {
-      return {
-        status: ResultStatus.Unauthorized,
-        data: null,
-        errorMessage: 'Unauthorized',
-        extensions: [],
-      }
-    }
-
-    // Создаём документ, который положим в blacklist
-    const refreshToken: IRefreshTokenBlacklistDB = {
-      token: oldRefreshToken,
-      userId,
-      createdAt: new Date(),
-      expiresDate: new Date(payload.exp * 1000)
-    }
-
-
-    // Добавляем старый refresh token в blacklist
-    // После этого им уже нельзя будет сделать refresh
-    await refreshTokenBlacklistRepository.addTokenToBlackList(refreshToken)
 
     // Возвращаем успешный результат
     return {

@@ -47,6 +47,22 @@ export const deviceSessionsRepository = {
       )
 
     return result.modifiedCount === 1
+  },
+
+  async deleteSession({deviceId, userId, oldIat}:{deviceId: string, userId: string, oldIat: Date}): Promise<boolean> {
+    const result = await db
+    .getCollections()
+    .deviceSessionsCollection.deleteOne({
+        // Удаляем session только этого пользователя
+        device_id: deviceId,
+        // Только с этого устройства/браузера
+        iat: oldIat,
+        // Только конкретную версию refreshToken/session
+        user_id: userId
+    })
+
+    // true, если Mongo реально удалила одну запись
+    return result.deletedCount === 1
   }
 
 }
