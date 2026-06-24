@@ -38,9 +38,9 @@ export const jwtService = {
     }
   },
 
-  async decodeJWT(token: string): Promise<any> {
+  async decodeJWT(token: string): Promise<JWTPayloadWithUserId | null> {
     try {
-      return jwt.decode(token);
+      return jwt.decode(token) as JWTPayloadWithUserId;
     } catch(error: unknown) {
       console.log("Can't decode token", error)
       return null

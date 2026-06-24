@@ -50,7 +50,8 @@ export const devicesSessionsRepository = {
           }}
       )
 
-    return result.modifiedCount === 1
+    // нашли session
+    return result.matchedCount === 1
   },
 
   // Удаляет текущую device session при logout.
