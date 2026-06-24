@@ -39,6 +39,46 @@ describe('Login e2e', () => {
     await db.stop()
   })
 
+  it('POST -> "/auth/login": should create 4 device sessions after 4 logins from different devices', async () => {
+    const userAgents = ['Chrome', 'Safari', 'Firefox', 'Postman']
+
+    const userDto = {
+      login: 'Natalia',
+      password: 'qwerty123',
+      email: 'natalia@gmail.com',
+    }
+
+    await createUser(app, userDto)
+
+    for(const userAgent of userAgents) {
+      const response = await request(app)
+        .post(`${AUTH_PATH}/login`)
+        .set('User-Agent', userAgent)
+        .send({
+          loginOrEmail: userDto.login,
+          password: userDto.password,
+        })
+        .expect(HttpStatus.Ok_200)
+
+      expect(response.body).toEqual({
+        accessToken: expect.any(String),
+      })
+    }
+
+    const sessions = await db
+      .getCollections()
+      .deviceSessionsCollection
+      .find({})
+      .toArray()
+
+    expect(sessions).toHaveLength(4)
+
+    expect(sessions.map(s => s.device_name).sort()).toEqual(
+      [...userAgents].sort()
+    )
+
+  })
+
   it('POST -> "/auth/login": should sign in user; status 200, access token and refresh token in cookie', async () => {
     const userDto = {
       login: 'Natalia',
