@@ -7,6 +7,9 @@ import { db } from '../../../src/db/mongo.db'
 import { SETTINGS } from '../../../src/core/settings/settings'
 import { clearDb } from '../../utils/clear-db'
 import { createUser } from '../../utils/users/create-user'
+import {
+  apiRequestLogsRepository
+} from "../../../src/auth/repositories/api-request-logs.repository";
 
 describe('Login e2e', () => {
   const app = express()
@@ -16,12 +19,64 @@ describe('Login e2e', () => {
     await db.run(SETTINGS.MONGO_URL)
   })
 
+  beforeEach(async () => {
+    await clearDb(app)
+
+    jest
+      .spyOn(apiRequestLogsRepository, 'countRecentRequests')
+      .mockResolvedValue(0)
+
+    jest
+      .spyOn(apiRequestLogsRepository, 'create')
+      .mockResolvedValue(true)
+  })
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
   afterAll(async () => {
     await db.stop()
   })
 
-  beforeEach(async () => {
-    await clearDb(app)
+  it('POST -> "/auth/login": should create 4 device sessions after 4 logins from different devices', async () => {
+    const userAgents = ['Chrome', 'Safari', 'Firefox', 'Postman']
+
+    const userDto = {
+      login: 'Natalia',
+      password: 'qwerty123',
+      email: 'natalia@gmail.com',
+    }
+
+    await createUser(app, userDto)
+
+    for(const userAgent of userAgents) {
+      const response = await request(app)
+        .post(`${AUTH_PATH}/login`)
+        .set('User-Agent', userAgent)
+        .send({
+          loginOrEmail: userDto.login,
+          password: userDto.password,
+        })
+        .expect(HttpStatus.Ok_200)
+
+      expect(response.body).toEqual({
+        accessToken: expect.any(String),
+      })
+    }
+
+    const sessions = await db
+      .getCollections()
+      .deviceSessionsCollection
+      .find({})
+      .toArray()
+
+    expect(sessions).toHaveLength(4)
+
+    expect(sessions.map(s => s.device_name).sort()).toEqual(
+      [...userAgents].sort()
+    )
+
   })
 
   it('POST -> "/auth/login": should sign in user; status 200, access token and refresh token in cookie', async () => {
@@ -96,5 +151,19 @@ describe('Login e2e', () => {
         password: '',
       })
       .expect(HttpStatus.BadRequest_400)
+  })
+
+  it('POST -> "/auth/login": should return 429 if rate limit exceeded', async () => {
+    jest
+      .spyOn(apiRequestLogsRepository, 'countRecentRequests')
+      .mockResolvedValue(5)
+
+    await request(app)
+      .post(`${AUTH_PATH}/login`)
+      .send({
+        loginOrEmail: 'Natalia',
+        password: 'qwerty123',
+      })
+      .expect(HttpStatus.ManyRequest_429)
   })
 })

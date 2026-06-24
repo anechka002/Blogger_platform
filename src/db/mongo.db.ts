@@ -4,15 +4,15 @@ import {Blog} from "../blogs/types/blog";
 import {Post} from "../posts/types/post";
 import {IUserDB} from "../users/types/user.db.type";
 import {ICommentDB} from "../comments/types/comment.db.type";
-import {
-  IRefreshTokenBlacklistDB
-} from "../auth/types/refresh-token-blacklist.db.type";
+import {ApiRequestLogDb} from "../auth/types/api-request-log.db.type";
+import {ISessionDB} from "../devices/types/session.db.type";
 
 const BLOG_COLLECTION_NAME = 'blogs';
 const POST_COLLECTION_NAME = 'posts';
 const USER_COLLECTION_NAME = 'users';
 const COMMENT_COLLECTION_NAME = 'comments';
-const REFRESH_TOKEN_BLACKLIST_COLLECTION_NAME = 'refreshTokenBlacklist';
+const API_REQUEST_LOGS_COLLECTION_NAME = 'apiRequestLogs';
+const DEVICE_SESSIONS_COLLECTION_NAME = 'deviceSessions';
 
 export const db = {
   client: null as MongoClient | null,
@@ -68,10 +68,16 @@ export const db = {
     }
   },
 
-  async createIndex() {
-    await db.getCollections().refreshTokenBlacklistCollection.createIndex(
-      {expiresDate: 1},
+  // Создаём TTL index, чтобы MongoDB автоматически удаляла старые логи запросов.
+  async createIndexes() {
+    await db.getCollections().deviceSessionsCollection.createIndex(
+      {exp: 1},
       {expireAfterSeconds: 0}
+    )
+
+    await db.getCollections().apiRequestLogsCollection.createIndex(
+      {date: 1},
+      {expireAfterSeconds: 10}
     )
   },
 
@@ -80,7 +86,8 @@ export const db = {
     postCollection: Collection<Post>;
     userCollection: Collection<IUserDB>;
     commentCollection: Collection<ICommentDB>;
-    refreshTokenBlacklistCollection: Collection<IRefreshTokenBlacklistDB>
+    apiRequestLogsCollection: Collection<ApiRequestLogDb>
+    deviceSessionsCollection: Collection<ISessionDB>
   } {
     const database = db.getDb();
 
@@ -89,7 +96,8 @@ export const db = {
       postCollection: database.collection<Post>(POST_COLLECTION_NAME),
       userCollection: database.collection<IUserDB>(USER_COLLECTION_NAME),
       commentCollection: database.collection<ICommentDB>(COMMENT_COLLECTION_NAME),
-      refreshTokenBlacklistCollection: database.collection<IRefreshTokenBlacklistDB>(REFRESH_TOKEN_BLACKLIST_COLLECTION_NAME)
+      apiRequestLogsCollection: database.collection<ApiRequestLogDb>(API_REQUEST_LOGS_COLLECTION_NAME),
+      deviceSessionsCollection: database.collection<ISessionDB>(DEVICE_SESSIONS_COLLECTION_NAME),
     };
   },
 }
