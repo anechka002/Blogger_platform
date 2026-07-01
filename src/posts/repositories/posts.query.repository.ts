@@ -9,7 +9,7 @@ import {
 } from "../../core/errors/repositiry-not-found.error";
 import {db} from "../../db/mongo.db";
 import {calculateSkip} from "../../core/utils/calculateSkip";
-import {ObjectId, WithId} from "mongodb";
+import {ObjectId} from "mongodb";
 import {
   BlogPostsQueryInput
 } from "../../blogs/routers/input/blog-posts-query.input";
@@ -17,7 +17,7 @@ import {
   mapToPostListPaginationOutput
 } from "../routers/mappers/map-to-post-list-pagination-output.util";
 
-export const postsQueryRepository = {
+export class PostsQueryRepository {
   // Найти все посты у которых поле blogId равно этому blogId
   async findManyByBlogId(blogId: string, queryDto: BlogPostsQueryInput): Promise<PaginationOutput<PostViewDto>> {
     const { pageNumber, pageSize, sortBy, sortDirection} = queryDto;
@@ -39,7 +39,7 @@ export const postsQueryRepository = {
       .postCollection.countDocuments(filter)
 
     return mapToPostListPaginationOutput({items, totalCount}, queryDto)
-  },
+  }
 
   // Найти все посты с пагинацией и сортировкой
   async findMany(queryDto: PostQueryInput): Promise<PaginationOutput<PostViewDto>> {
@@ -68,7 +68,7 @@ export const postsQueryRepository = {
       totalCount: totalCount,
       items: items.map(mapToPostViewModel),
     }
-  },
+  }
 
   // Найти пост по ID или завершить с ошибкой
   async findByIdOrFail(id: string): Promise<PostViewDto> {
@@ -83,7 +83,7 @@ export const postsQueryRepository = {
     }
 
     return mapToPostViewModel(foundPost)
-  },
+  }
 
   // Найти пост по ID
   async findById(postId: string): Promise<PostViewDto | null> {

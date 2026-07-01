@@ -1,25 +1,20 @@
 import {Router} from "express";
-import {getCommentHandler} from "./handlers/get-comment.handler";
 import {
   idValidationMiddleware
 } from "../../core/middlewares/validation/params-id.validation-middleware";
 import {
   inputValidationResultMiddleware
 } from "../../core/middlewares/validation/input-validation-result.middleware";
-import {updateCommentHandler} from "./handlers/update-comment.handler";
-import {
-  accessTokenGuardMiddleware
-} from "../../auth/middlewares/access.token.guard-middleware";
 import {
   commentInputDtoValidation
 } from "../validation/comment.input-dto.validation-middlewares";
-import {deleteCommentHandler} from "./handlers/delete-comment.handler";
+import {accessToken, commentsController} from "../../composition-root";
 
 export const commentsRouter = Router({});
 
 commentsRouter
-  .get('/:id', idValidationMiddleware(), inputValidationResultMiddleware, getCommentHandler)
+  .get('/:id', idValidationMiddleware(), inputValidationResultMiddleware, commentsController.getComment.bind(commentsController))
 
-  .put('/:commentId', accessTokenGuardMiddleware, idValidationMiddleware('commentId'), commentInputDtoValidation, inputValidationResultMiddleware,  updateCommentHandler)
+  .put('/:commentId', accessToken, idValidationMiddleware('commentId'), commentInputDtoValidation, inputValidationResultMiddleware,  commentsController.updateComment.bind(commentsController))
 
-  .delete('/:commentId', accessTokenGuardMiddleware, idValidationMiddleware('commentId'), inputValidationResultMiddleware, deleteCommentHandler);
+  .delete('/:commentId', accessToken, idValidationMiddleware('commentId'), inputValidationResultMiddleware, commentsController.deleteComment.bind(commentsController));

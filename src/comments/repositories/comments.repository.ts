@@ -2,14 +2,14 @@ import {ICommentDB} from "../types/comment.db.type";
 import {db} from "../../db/mongo.db";
 import {ObjectId} from "mongodb";
 
-export const commentsRepository = {
+export class CommentsRepository {
   async createComment(comment: ICommentDB): Promise<string>{
     const insertResult = await db
       .getCollections()
       .commentCollection.insertOne(comment)
 
     return insertResult.insertedId.toString();
-  },
+  }
 
   async updateComment(commentId: string, content: string): Promise<boolean>{
     const insertResult = await db
@@ -19,7 +19,7 @@ export const commentsRepository = {
         { $set: { content } },
       )
     return insertResult.matchedCount === 1
-  },
+  }
 
   async deleteComment(commentId: string): Promise<boolean>{
     if (!ObjectId.isValid(commentId)) {

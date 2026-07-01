@@ -1,6 +1,6 @@
-import {IMeView} from "../../../types/me.view";
+import {IMeView} from "../../../auth/types/me.view";
 import {WithId} from "mongodb";
-import {IUserDB} from "../../../../users/types/user.db.type";
+import {IUserDB} from "../../types/user.db.type";
 
 export const mapToMeViewModel = (user: WithId<IUserDB>): IMeView => {
   return {

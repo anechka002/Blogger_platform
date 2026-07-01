@@ -6,11 +6,12 @@ import { HttpStatus } from '../../../src/core/types/http-statuses'
 import { db } from '../../../src/db/mongo.db'
 import { SETTINGS } from '../../../src/core/settings/settings'
 import { clearDb } from '../../utils/clear-db'
-import {nodemailerService} from "../../../src/auth/adapters/nodemailer.service";
 import {registerUser} from "../../utils/auth/register-user";
 import {
-  apiRequestLogsRepository
-} from "../../../src/auth/repositories/api-request-logs.repository";
+  apiRequestLogsRepository,
+  nodemailerService
+} from "../../../src/composition-root";
+
 
 describe('Registration-confirmation e2e', () => {
   const app = express()
@@ -30,6 +31,10 @@ describe('Registration-confirmation e2e', () => {
     jest
       .spyOn(apiRequestLogsRepository, 'create')
       .mockResolvedValue(true)
+
+    jest
+      .spyOn(nodemailerService, 'sendEmail')
+      .mockResolvedValue(true)
   })
 
   afterEach(() => {
@@ -41,9 +46,6 @@ describe('Registration-confirmation e2e', () => {
   })
 
   it('POST -> "/auth/registration-confirmation": should confirm registration by email; status 204', async () => {
-    jest
-      .spyOn(nodemailerService, 'sendEmail')
-      .mockResolvedValue(true)
 
     const userDto = {
       login: 'Natalia',
@@ -61,9 +63,6 @@ describe('Registration-confirmation e2e', () => {
   })
 
   it('POST -> "/auth/registration-confirmation": should return error if code already confirmed; status 400', async () => {
-    jest
-      .spyOn(nodemailerService, 'sendEmail')
-      .mockResolvedValue(true)
 
     const userDto = {
       login: 'Natalia',

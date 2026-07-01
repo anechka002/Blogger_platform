@@ -1,28 +1,22 @@
 import {Router} from "express";
-import {getAllDevicesHandler} from "./handlers/get-all-devices.handler";
 import {
   inputValidationResultMiddleware
 } from "../../core/middlewares/validation/input-validation-result.middleware";
 import {
   refreshTokenGuardMiddleware
 } from "../../auth/middlewares/refresh.token.guard-middleware";
-import {
-  deleteAllExceptCurrentHandler
-} from "./handlers/delete-all-except-current.handler";
-import {
-  deleteDeviceSessionHandler
-} from "./handlers/delete-device-session.handler";
 import {deviceIdValidation} from "../middleware/devaice-id.validation";
+import {deviceController, refreshToken} from "../../composition-root";
 
 export const devicesRouter = Router({});
 
 devicesRouter
 
-  .get('/', refreshTokenGuardMiddleware, inputValidationResultMiddleware, getAllDevicesHandler)
+  .get('/', refreshToken, inputValidationResultMiddleware, deviceController.getAllDevices.bind(deviceController))
 
-  .delete('/', refreshTokenGuardMiddleware, inputValidationResultMiddleware, deleteAllExceptCurrentHandler)
+  .delete('/', refreshToken, inputValidationResultMiddleware, deviceController.deleteAllExceptCurrent.bind(deviceController))
 
-  .delete('/:deviceId', refreshTokenGuardMiddleware, deviceIdValidation, inputValidationResultMiddleware, deleteDeviceSessionHandler)
+  .delete('/:deviceId', refreshToken, deviceIdValidation, inputValidationResultMiddleware, deviceController.deleteDeviceSession.bind(deviceController))
 
 
 

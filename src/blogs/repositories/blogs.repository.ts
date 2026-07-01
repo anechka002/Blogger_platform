@@ -6,7 +6,7 @@ import {
   RepositoryNotFoundError
 } from "../../core/errors/repositiry-not-found.error";
 
-export const blogsRepository = {
+export class BlogsRepository {
   // Найти блог по ID
   async findById(id: string): Promise<WithId<Blog> | null> {
     if (!ObjectId.isValid(id)) {
@@ -16,7 +16,7 @@ export const blogsRepository = {
     return db
       .getCollections()
       .blogCollection.findOne({ _id: new ObjectId(id) })
-  },
+  }
 
   // Найти блог по ID или завершить с ошибкой
   async findByIdOrFail(id: string): Promise<WithId<Blog>> {
@@ -33,7 +33,7 @@ export const blogsRepository = {
     }
 
     return foundBlog
-  },
+  }
 
   // Создать новый блог
   async create(blog: Blog): Promise<string> {
@@ -42,7 +42,7 @@ export const blogsRepository = {
       .blogCollection.insertOne(blog);
 
     return insertResult.insertedId.toString();
-  },
+  }
 
   // Обновить данные бдога
   async update(id: string, dto: UpdateBlogDto): Promise<boolean> {
@@ -66,7 +66,7 @@ export const blogsRepository = {
     );
 
     return updateResult.matchedCount === 1
-  },
+  }
 
   // Удалить блог
   async delete(id: string): Promise<boolean> {
@@ -79,5 +79,5 @@ export const blogsRepository = {
       .blogCollection.deleteOne({_id: new ObjectId(id)});
 
     return deletedResult.deletedCount === 1
-  },
+  }
 };

@@ -1,14 +1,18 @@
-import {
-  devicesSessionsRepository
-} from "../repositories/devices-sessions.repository";
 import {Result} from "../../core/result/result.type";
 import {ResultStatus} from "../../core/result/resultCode";
+import {
+  DevicesSessionsRepository
+} from "../repositories/devices-sessions.repository";
 
-export const deviceService = {
+export class DeviceService {
+  protected devicesSessionsRepository: DevicesSessionsRepository;
+  constructor(devicesSessionsRepository: DevicesSessionsRepository) {
+    this.devicesSessionsRepository = devicesSessionsRepository;
+  }
   // Удаляет все device sessions текущего пользователя, кроме текущей session/device, с которой пришёл refreshToken.
   async deleteAllExceptCurrent({deviceId, userId}:{deviceId: string, userId: string}): Promise<Result<boolean | null>>  {
     // Просим repository удалить все sessions пользователя, где device_id НЕ равен текущему deviceId.
-    const isDeleted = await devicesSessionsRepository.deleteAllExceptCurrent({userId, deviceId});
+    const isDeleted = await this.devicesSessionsRepository.deleteAllExceptCurrent({userId, deviceId});
 
     // Если MongoDB не подтвердила удаление, возвращаем ошибочный Result.
     if(!isDeleted) {
@@ -26,12 +30,12 @@ export const deviceService = {
       data: true,
       extensions: [],
     }
-  },
+  }
 
   // Удаляет одну device session, принадлежащую указанному пользователю и устройству.
   async deleteOneByUserIdAndDeviceId({userId, deviceId}:{deviceId: string, userId: string}): Promise<Result<boolean | null>>  {
     // Найти session по deviceId
-    const session = await devicesSessionsRepository.findByDeviceId(deviceId)
+    const session = await this.devicesSessionsRepository.findByDeviceId(deviceId)
 
     // Если session нет → 404
     if(!session) {
@@ -54,7 +58,7 @@ export const deviceService = {
     }
 
     // Удаляем session только если она принадлежит текущему пользователю.
-    const isDeleted = await devicesSessionsRepository.deleteOneByUserIdAndDeviceId({userId, deviceId});
+    const isDeleted = await this.devicesSessionsRepository.deleteOneByUserIdAndDeviceId({userId, deviceId});
 
     // Если удалить не получилось — значит session уже была удалена или произошла рассинхронизация между проверкой и удалением.
     if(!isDeleted) {

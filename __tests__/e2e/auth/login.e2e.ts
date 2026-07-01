@@ -9,7 +9,7 @@ import { clearDb } from '../../utils/clear-db'
 import { createUser } from '../../utils/users/create-user'
 import {
   apiRequestLogsRepository
-} from "../../../src/auth/repositories/api-request-logs.repository";
+} from "../../../src/composition-root";
 
 describe('Login e2e', () => {
   const app = express()

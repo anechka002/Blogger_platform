@@ -5,15 +5,15 @@ import {calculateSkip} from "../../core/utils/calculateSkip";
 import {db} from "../../db/mongo.db";
 import {
   mapToUserViewModel
-} from "../routers/mappers/map-to-user-view-model.utils";
+} from "./mappers/map-to-user-view-model.utils";
 import {ObjectId} from "mongodb";
 import {IMeView} from "../../auth/types/me.view";
 import {
   mapToMeViewModel
-} from "../../auth/routers/handlers/mappers/map-to-me-view-model.utils";
+} from "./mappers/map-to-me-view-model.utils";
 
 
-export const usersQueryRepository = {
+export class UsersQueryRepository {
   // Найти всех users с пагинацией и сортировкой
   async findAllUsers(queryDto: UserQueryFieldsType): Promise<PaginationOutput<IUserView>> {
     const {pageNumber, pageSize, sortBy, sortDirection, searchLoginTerm, searchEmailTerm } = queryDto;
@@ -55,7 +55,7 @@ export const usersQueryRepository = {
       items: items.map(mapToUserViewModel)
     }
 
-  },
+  }
 
   // Найти user по id
   async findById(id: string): Promise<IUserView | null> {
@@ -67,7 +67,7 @@ export const usersQueryRepository = {
       .getCollections()
       .userCollection.findOne({_id: new ObjectId(id)})
     return user ? mapToUserViewModel(user) : null
-  },
+  }
 
   // Найти me по id
   async findMeById(id: string): Promise<IMeView | null> {
@@ -79,6 +79,6 @@ export const usersQueryRepository = {
       .getCollections()
       .userCollection.findOne({_id: new ObjectId(id)})
     return user ? mapToMeViewModel(user) : null
-  },
+  }
 
 }

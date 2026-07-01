@@ -6,11 +6,12 @@ import { HttpStatus } from '../../../src/core/types/http-statuses'
 import { db } from '../../../src/db/mongo.db'
 import { SETTINGS } from '../../../src/core/settings/settings'
 import { clearDb } from '../../utils/clear-db'
-import {nodemailerService} from "../../../src/auth/adapters/nodemailer.service";
 import {registerUser} from "../../utils/auth/register-user";
 import {
-  apiRequestLogsRepository
-} from "../../../src/auth/repositories/api-request-logs.repository";
+  apiRequestLogsRepository,
+  nodemailerService
+} from "../../../src/composition-root";
+
 
 describe('Registration-email-resending e2e', () => {
   const app = express()

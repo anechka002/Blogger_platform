@@ -1,6 +1,6 @@
 import {WithId} from "mongodb";
-import {ICommentDB} from "../types/comment.db.type";
-import {ICommentView} from "../types/comment.view.type";
+import {ICommentDB} from "../../types/comment.db.type";
+import {ICommentView} from "../../types/comment.view.type";
 
 export const mapToCommentViewModel = (comment: WithId<ICommentDB>): ICommentView => {
   return {

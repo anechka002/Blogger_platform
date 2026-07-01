@@ -2,19 +2,18 @@ import {Router} from "express";
 import {
   baseAuthGuardMiddleware
 } from "../../auth/middlewares/base.auth.guard-middleware";
-import {getUsersHandler} from "./handlers/get-users.handler";
 import {
   paginationAndSortingValidation
 } from "../../core/middlewares/validation/query-pagination-sorting.validation-middleware";
 import {
   inputValidationResultMiddleware
 } from "../../core/middlewares/validation/input-validation-result.middleware";
-import {createUserHandler} from "./handlers/create-user.handler";
-import {UserSortField} from "../types/user-query-fields.type";
+import {
+  UserSortField
+} from "../types/user-query-fields.type";
 import {
   idValidationMiddleware
 } from "../../core/middlewares/validation/params-id.validation-middleware";
-import {deleteUserHandler} from "./handlers/delete-user.handler";
 import {
   searchEmailTermValidation,
   searchLoginTermValidation
@@ -22,14 +21,15 @@ import {
 import {passwordValidation} from "../middleware/password.validation";
 import {emailValidation} from "../middleware/email.validation";
 import {loginValidation} from "../middleware/login.validation";
+import {usersController, usersRepository} from "../../composition-root";
 
 export const usersRouter = Router({});
 
 usersRouter.use(baseAuthGuardMiddleware); // для всех роутеров
 
 usersRouter
-  .get('/', paginationAndSortingValidation(UserSortField), searchLoginTermValidation, searchEmailTermValidation, inputValidationResultMiddleware, getUsersHandler)
+  .get('/', paginationAndSortingValidation(UserSortField), searchLoginTermValidation, searchEmailTermValidation, inputValidationResultMiddleware, usersController.getUsers.bind(usersController))
 
-  .post('/', passwordValidation, emailValidation, loginValidation, inputValidationResultMiddleware, createUserHandler)
+  .post('/', passwordValidation, emailValidation(usersRepository), loginValidation(usersRepository), inputValidationResultMiddleware, usersController.createUser.bind(usersController))
 
-  .delete('/:id', idValidationMiddleware(), inputValidationResultMiddleware, deleteUserHandler);
+  .delete('/:id', idValidationMiddleware(), inputValidationResultMiddleware, usersController.deleteUser.bind(usersController));

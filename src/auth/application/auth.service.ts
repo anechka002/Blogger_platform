@@ -1,23 +1,38 @@
-import {usersRepository} from "../../users/repositories/users.repository";
-import {argon2Service} from "../adapters/argon.service";
-import {jwtService} from "../adapters/jwt.service";
+import {
+  UsersRepository,
+} from "../../users/repositories/users.repository";
 import {ResultStatus} from "../../core/result/resultCode";
 import {Result} from "../../core/result/result.type";
 import {IUserDB} from "../../users/types/user.db.type";
 import {add} from "date-fns";
 import {randomUUID} from "node:crypto";
-import {nodemailerService} from "../adapters/nodemailer.service";
 import {ILoginView} from "../types/login.view.type";
 import {ISessionDB} from "../../devices/types/session.db.type";
+import {Argon2Service} from "../adapters/argon.service";
+import {JwtService} from "../adapters/jwt.service";
+import {NodemailerService} from "../adapters/nodemailer.service";
 import {
-  devicesSessionsRepository
+  DevicesSessionsRepository
 } from "../../devices/repositories/devices-sessions.repository";
 
-export const authService = {
+export class AuthService {
+  protected usersRepository: UsersRepository
+  protected argon2Service: Argon2Service
+  protected jwtService: JwtService
+  protected nodemailerService: NodemailerService
+  protected devicesSessionsRepository: DevicesSessionsRepository
+  constructor(usersRepository: UsersRepository, argon2Service: Argon2Service, jwtService: JwtService, nodemailerService: NodemailerService, devicesSessionsRepository: DevicesSessionsRepository) {
+    this.usersRepository = usersRepository;
+    this.argon2Service = argon2Service;
+    this.jwtService = jwtService;
+    this.nodemailerService = nodemailerService;
+    this.devicesSessionsRepository = devicesSessionsRepository;
+  }
+
   // Login пользователя
   async loginUser({loginOrEmail, password, deviceName, ip}:{loginOrEmail: string, password: string, deviceName: string, ip: string}): Promise<Result<ILoginView | null>> {
     // Ищем пользователя по login или email
-    const user = await usersRepository.findByLoginOrEmail(loginOrEmail);
+    const user = await this.usersRepository.findByLoginOrEmail(loginOrEmail);
     // Если пользователь не найден — логин невозможен
     if (!user) {
       return {
@@ -29,7 +44,7 @@ export const authService = {
     }
 
     // Проверяем пароль: сравниваем обычный password из запроса с passwordHash из базы
-    const isPasswordCorrect = await argon2Service.checkPassword(password, user.passwordHash)
+    const isPasswordCorrect = await this.argon2Service.checkPassword(password, user.passwordHash)
     // Если пароль неверный — сессию и токены не создаём
     if (!isPasswordCorrect) {
       return {
@@ -46,12 +61,12 @@ export const authService = {
 
     // Создаём accessToken и refreshToken.
     // В payload кладём userId и deviceId, чтобы потом понимать, какой пользователь и какая сессия делает refresh/logout.
-    const tokens = await jwtService.createJWT(user._id.toString(), deviceId)
+    const tokens = await this.jwtService.createJWT(user._id.toString(), deviceId)
 
     // Декодируем refreshToken, чтобы достать iat и exp.
     // iat — когда токен создан.
     // exp — когда токен истекает.
-    const payload = await jwtService.decodeJWT(tokens.refreshToken)
+    const payload = await this.jwtService.decodeJWT(tokens.refreshToken)
     // На всякий случай проверяем, что payload существует и внутри есть iat/exp.
     if(!payload || !payload.iat || !payload.exp) {
       return {
@@ -76,7 +91,7 @@ export const authService = {
     }
 
     // Сохраняем активную сессию устройства в БД.
-    await devicesSessionsRepository.addSession(session)
+    await this.devicesSessionsRepository.addSession(session)
 
     // Возвращаем токены handler-у
     return {
@@ -84,11 +99,11 @@ export const authService = {
       data: tokens,
       extensions: [],
     };
-  },
+  }
 
   // Регистрация пользователя
   async registerUser(login: string, email: string, password: string): Promise<Result<IUserDB | null>> {
-    const userByLogin = await usersRepository.findByLogin(login);
+    const userByLogin = await this.usersRepository.findByLogin(login);
 
     if (userByLogin) {
       return {
@@ -99,7 +114,7 @@ export const authService = {
       }
     }
 
-    const userByEmail = await usersRepository.findByEmail(email);
+    const userByEmail = await this.usersRepository.findByEmail(email);
     if (userByEmail) {
       return {
         status: ResultStatus.BadRequest,
@@ -109,7 +124,7 @@ export const authService = {
       }
     }
 
-    const passwordHash = await argon2Service.generateHash(password);
+    const passwordHash = await this.argon2Service.generateHash(password);
 
     const newUser: IUserDB = {
       login,
@@ -126,9 +141,9 @@ export const authService = {
       }
     }
 
-    const result = await usersRepository.create(newUser);
+    const result = await this.usersRepository.create(newUser);
 
-    nodemailerService.sendEmail(
+    this.nodemailerService.sendEmail(
       newUser.email,
       'Registration confirmation',
       `<h1>Thank you for registration</h1>
@@ -145,12 +160,12 @@ export const authService = {
       extensions: [],
       data: newUser
     }
-  },
+  }
 
   // Подтверждает регистрацию пользователя по коду подтверждения
   async registrationConfirmation(code: string): Promise<Result<IUserDB | null>> {
     // Ищем пользователя, у которого emailConfirmation.confirmationCode === code
-    const user = await usersRepository.findByConfirmationCode(code);
+    const user = await this.usersRepository.findByConfirmationCode(code);
 
     // код не найден → 400
     if (!user) {
@@ -185,7 +200,7 @@ export const authService = {
     // Найди пользователя по id
     // и обнови ему:
     // emailConfirmation.isConfirmed = true
-    const isConfirmed = await usersRepository.confirmEmail(user._id.toString())
+    const isConfirmed = await this.usersRepository.confirmEmail(user._id.toString())
     if (!isConfirmed) {
       return {
         status: ResultStatus.BadRequest,
@@ -196,19 +211,19 @@ export const authService = {
     }
 
     // после confirmEmail ещё раз найти пользователя
-    const confirmedUser = await usersRepository.findById(user._id.toString())
+    const confirmedUser = await this.usersRepository.findById(user._id.toString())
 
     return {
       status: ResultStatus.Success,
       extensions: [],
       data: confirmedUser
     }
-  },
+  }
 
   // Повторно отправляет письмо для подтверждения регистрации
   async registrationEmailResending(email: string): Promise<Result<IUserDB | null>> {
     // Ищем user по email
-    const userByEmail = await usersRepository.findByEmail(email);
+    const userByEmail = await this.usersRepository.findByEmail(email);
 
     // Если user не найден → 400
     if (!userByEmail) {
@@ -237,7 +252,7 @@ export const authService = {
     const newExpirationDate = add(new Date(), {hours: 1,minutes: 3})
 
     // Обновляем user в базе
-    const isUpdated = await usersRepository.updateConfirmationCode(userByEmail._id.toString(), newConfirmationCode, newExpirationDate)
+    const isUpdated = await this.usersRepository.updateConfirmationCode(userByEmail._id.toString(), newConfirmationCode, newExpirationDate)
     if (!isUpdated) {
       return {
         status: ResultStatus.BadRequest,
@@ -248,7 +263,7 @@ export const authService = {
     }
 
     // Отправляем новое письмо
-    nodemailerService.sendEmail(
+    this.nodemailerService.sendEmail(
       userByEmail.email,
       'Registration confirmation',
       `<p>${newConfirmationCode}</p>
@@ -263,12 +278,12 @@ export const authService = {
       extensions: [],
       data: null
     }
-  },
+  }
 
   // Обновляем пару токенов: выдаём новый accessToken и новый refreshToken для уже существующей device session
   async refreshToken({oldIat, userId, deviceId}: {userId: string, oldIat: Date, deviceId: string}): Promise<Result<ILoginView | null>> {
     // Ищем пользователя в базе по userId, который пришёл из middleware в req.user
-    const user = await usersRepository.findById(userId);
+    const user = await this.usersRepository.findById(userId);
     // Если пользователя нет — значит refresh делать нельзя
     if (!user) {
       return {
@@ -281,12 +296,12 @@ export const authService = {
 
     // Создаём новую пару токенов.
     // deviceId оставляем тот же самый, потому что это всё ещё та же device session.
-    const tokens = await jwtService.createJWT(user._id.toString(), deviceId);
+    const tokens = await this.jwtService.createJWT(user._id.toString(), deviceId);
 
     // Декодируем НОВЫЙ refreshToken, чтобы достать из него новые iat и exp.
     // iat — когда новый refreshToken создан
     // exp — когда новый refreshToken протухнет
-    const payload = await jwtService.decodeJWT(tokens.refreshToken)
+    const payload = await this.jwtService.decodeJWT(tokens.refreshToken)
 
     // Если payload почему-то не достался, считаем, что refresh выполнить нельзя
     if (!payload) {
@@ -304,7 +319,7 @@ export const authService = {
 
     // Обновляем старую device session в БД:
     // найти старую session по: userId + deviceId + oldIat и заменить в ней: iat → newIat и exp → newExp
-    const isSessionsUpdate = await devicesSessionsRepository.updateSessionByDeviceIdAndIat({userId: user._id.toString(), deviceId, oldIat, newIat, newExp})
+    const isSessionsUpdate = await this.devicesSessionsRepository.updateSessionByDeviceIdAndIat({userId: user._id.toString(), deviceId, oldIat, newIat, newExp})
 
     // Если session не обновилась, значит старая session не найдена или уже неактуальна
     if(!isSessionsUpdate) {
@@ -322,12 +337,12 @@ export const authService = {
       data: tokens,
       extensions: [],
     };
-  },
+  }
 
   // Logout пользователя: завершает текущую device session
   async logoutUser({userId, deviceId, oldIat}:{userId: string, deviceId: string, oldIat: Date}): Promise<Result<boolean | null>> {
     // Проверяем, что пользователь действительно существует
-    const user = await usersRepository.findById(userId);
+    const user = await this.usersRepository.findById(userId);
     if (!user) {
       return {
         status: ResultStatus.Unauthorized,
@@ -340,7 +355,7 @@ export const authService = {
 
     // Удаляем активную session текущего устройства.
     // Ищем именно по userId + deviceId + oldIat, чтобы удалить конкретную session, с которой пришёл refreshToken.
-    const isSessionDeleted = await devicesSessionsRepository.deleteSession({userId: user._id.toString(), deviceId, oldIat})
+    const isSessionDeleted = await this.devicesSessionsRepository.deleteSession({userId: user._id.toString(), deviceId, oldIat})
     if(!isSessionDeleted) {
       return {
         status: ResultStatus.NotFound,

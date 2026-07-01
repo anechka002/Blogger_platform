@@ -6,12 +6,12 @@ import {PaginationOutput} from "../../core/types/pagination.output";
 import {BlogViewDto} from "../dto/blogViewDto";
 import {
   mapToBlogViewModel
-} from "../routers/mappers/map-to-blog-view-model.utils";
+} from "./mappers/map-to-blog-view-model.utils";
 import {
   RepositoryNotFoundError
 } from "../../core/errors/repositiry-not-found.error";
 
-export const blogsQueryRepository = {
+export class BlogsQueryRepository {
   // Найти все блоги с пагинацией и сортировкой
   async findMany(queryDto: BlogQueryInput): Promise<PaginationOutput<BlogViewDto>>  {
     const { pageNumber, pageSize, sortBy, sortDirection, searchNameTerm} = queryDto;
@@ -39,7 +39,7 @@ export const blogsQueryRepository = {
       totalCount: totalCount,
       items: items.map(mapToBlogViewModel),
     }
-  },
+  }
 
   // Найти блог по ID
   async findById(id: string): Promise<BlogViewDto | null> {
@@ -52,7 +52,7 @@ export const blogsQueryRepository = {
       .blogCollection.findOne({_id: new ObjectId(id)});
 
     return foundBlog ? mapToBlogViewModel(foundBlog) : null;
-  },
+  }
 
   // Найти блог по ID или завершить с ошибкой
   async findByIdOrFail(id: string): Promise<BlogViewDto> {
@@ -69,6 +69,6 @@ export const blogsQueryRepository = {
     }
 
     return mapToBlogViewModel(foundBlog)
-  },
+  }
 
 }

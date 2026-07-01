@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import {SETTINGS} from "../../core/settings/settings";
 
-export const nodemailerService = {
+export class NodemailerService {
   async sendEmail(email: string, subject: string, message: string): Promise<boolean> {
     const transporter = nodemailer.createTransport({
       service: "Gmail",

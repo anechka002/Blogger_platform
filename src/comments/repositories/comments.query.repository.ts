@@ -6,12 +6,12 @@ import {
 import {db} from "../../db/mongo.db";
 import {
   mapToCommentViewModel
-} from "../mappers/map-to-comment-view-model.utils";
+} from "./mappers/map-to-comment-view-model.utils";
 import {CommentQueryInput} from "../routers/input/comment-query.input";
 import {PaginationOutput} from "../../core/types/pagination.output";
 import {calculateSkip} from "../../core/utils/calculateSkip";
 
-export const commentsQueryRepository = {
+export class CommentsQueryRepository {
   async findById(id: string): Promise<ICommentView | null> {
     if(!ObjectId.isValid(id)) {
       return null
@@ -21,7 +21,7 @@ export const commentsQueryRepository = {
       .commentCollection.findOne({_id: new ObjectId(id)});
 
     return foundComment ? mapToCommentViewModel(foundComment) : null
-  },
+  }
 
   async findByIdOrFail(id: string): Promise<ICommentView> {
     if(!ObjectId.isValid(id)) {
@@ -36,7 +36,7 @@ export const commentsQueryRepository = {
     }
 
     return mapToCommentViewModel(foundComment)
-  },
+  }
 
   async findMany(postId: string, queryInput: CommentQueryInput): Promise<PaginationOutput<ICommentView>> {
     const { pageNumber, pageSize, sortBy, sortDirection } = queryInput;

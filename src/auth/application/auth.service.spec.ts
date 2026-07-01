@@ -1,9 +1,8 @@
 import {MongoMemoryServer} from "mongodb-memory-server";
 import {db} from "../../db/mongo.db";
-import {authService} from "./auth.service";
 import {ResultStatus} from "../../core/result/resultCode";
-import {nodemailerService} from "../adapters/nodemailer.service";
 import {addMinutes} from "date-fns";
+import {authService, nodemailerService} from "../../composition-root";
 
 describe("integration tests for authService", () => {
   let mongoServer: MongoMemoryServer;

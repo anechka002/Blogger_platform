@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 import {SETTINGS} from "../../core/settings/settings";
 import {JWTPayloadWithUserId} from "../types/jwt-payload-with-userId.type";
 
-export const jwtService = {
+export class JwtService {
   async createJWT(userId: string, deviceId: string): Promise<{accessToken: string, refreshToken: string}> {
     const accessToken = jwt.sign(
       { userId },
@@ -17,7 +17,7 @@ export const jwtService = {
     )
 
     return {accessToken, refreshToken}
-  },
+  }
 
   async verifyAccessToken(token: string): Promise<JWTPayloadWithUserId | null> {
     try {
@@ -27,7 +27,7 @@ export const jwtService = {
       console.log("Token verify some error", error)
       return null
     }
-  },
+  }
 
   async verifyRefreshToken(refreshToken: string): Promise<JWTPayloadWithUserId | null> {
     try {
@@ -36,7 +36,7 @@ export const jwtService = {
       console.log("RefreshToken verify some error", error)
       return null
     }
-  },
+  }
 
   async decodeJWT(token: string): Promise<JWTPayloadWithUserId | null> {
     try {
@@ -45,7 +45,6 @@ export const jwtService = {
       console.log("Can't decode token", error)
       return null
     }
-  },
+  }
 }
-
 

@@ -2,7 +2,7 @@ import {db} from "../../db/mongo.db";
 import {ISessionDB} from "../types/session.db.type";
 import {WithId} from "mongodb";
 
-export const devicesSessionsRepository = {
+export class DevicesSessionsRepository {
   // Создаёт новую активную device session после успешного login.
   // Одна запись = один вход пользователя с конкретного браузера/устройства.
   async addSession(session: ISessionDB): Promise<boolean> {
@@ -12,7 +12,7 @@ export const devicesSessionsRepository = {
 
     // acknowledged показывает, что MongoDB подтвердила insert
     return result.acknowledged
-  },
+  }
 
   // Ищет активную session по deviceId и iat.
   // Используется в refreshTokenGuardMiddleware, чтобы проверить, что refreshToken принадлежит существующей и не протухшей session.
@@ -33,7 +33,7 @@ export const devicesSessionsRepository = {
 
     // Возвращаем найденную session или null
     return result
-  },
+  }
 
   // Обновляет текущую device session при refresh-token.
   // Находит старую session по userId + deviceId + oldIat и заменяет iat/exp на новые значения из нового refreshToken.
@@ -52,7 +52,7 @@ export const devicesSessionsRepository = {
 
     // нашли session
     return result.matchedCount === 1
-  },
+  }
 
   // Удаляет текущую device session при logout.
   // Ищет session по userId + deviceId + oldIat, чтобы завершить именно тот refreshToken, с которым пришёл logout.
@@ -70,7 +70,7 @@ export const devicesSessionsRepository = {
 
     // true, если Mongo реально удалила одну запись
     return result.deletedCount === 1
-  },
+  }
 
   // Удаляет все device sessions текущего пользователя, кроме текущего устройства.
   // Используется для endpoint-а: DELETE /security/devices
@@ -87,7 +87,7 @@ export const devicesSessionsRepository = {
 
     // acknowledged = MongoDB приняла и выполнила команду
     return result.acknowledged
-  },
+  }
 
   // Удаляет одну конкретную device session по userId и deviceId.
   // Используется для endpoint-а: DELETE /security/devices/:deviceId после проверки, что session принадлежит текущему пользователю.
@@ -103,7 +103,7 @@ export const devicesSessionsRepository = {
 
     // true, если Mongo реально удалила одну session
     return result.deletedCount === 1
-  },
+  }
 
   // Ищет session только по deviceId.
   // Используется перед удалением конкретного устройства,

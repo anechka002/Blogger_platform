@@ -1,21 +1,31 @@
 import {CreateCommentType} from "../types/create-comment.type";
 import {ICommentDB} from "../types/comment.db.type";
-import {
-  postsQueryRepository
-} from "../../posts/repositories/posts.query.repository";
-import {
-  usersQueryRepository
-} from "../../users/repositories/users.query.repository";
-import {commentsRepository} from "../repositories/comments.repository";
 import {ResultStatus} from "../../core/result/resultCode";
 import {Result} from "../../core/result/result.type";
 import {
-  commentsQueryRepository
+  UsersQueryRepository
+} from "../../users/repositories/users.query.repository";
+import {
+  PostsQueryRepository
+} from "../../posts/repositories/posts.query.repository";
+import {CommentsRepository} from "../repositories/comments.repository";
+import {
+  CommentsQueryRepository
 } from "../repositories/comments.query.repository";
 
-export const commentsService = {
+export class CommentsService {
+  protected usersQueryRepository: UsersQueryRepository
+  protected postsQueryRepository: PostsQueryRepository
+  protected commentsRepository: CommentsRepository
+  protected commentsQueryRepository: CommentsQueryRepository
+  constructor(usersQueryRepository: UsersQueryRepository, postsQueryRepository: PostsQueryRepository, commentsRepository: CommentsRepository, commentsQueryRepository: CommentsQueryRepository) {
+    this.usersQueryRepository = usersQueryRepository
+    this.postsQueryRepository = postsQueryRepository
+    this.commentsRepository = commentsRepository
+    this.commentsQueryRepository = commentsQueryRepository
+  }
   async createCommentForPost(postId: string, dto: CreateCommentType): Promise<Result<string | null>> {
-    const user = await usersQueryRepository.findMeById(dto.userId)
+    const user = await this.usersQueryRepository.findMeById(dto.userId)
     if (!user) {
       return {
         status: ResultStatus.Unauthorized,
@@ -25,7 +35,7 @@ export const commentsService = {
       }
     }
 
-    const post = await postsQueryRepository.findById(postId);
+    const post = await this.postsQueryRepository.findById(postId);
     if (!post) {
       return {
         status: ResultStatus.NotFound,
@@ -45,16 +55,16 @@ export const commentsService = {
       createdAt: new Date(),
     }
 
-    const commentId = await commentsRepository.createComment(newComment);
+    const commentId = await this.commentsRepository.createComment(newComment);
     return {
       status: ResultStatus.Success,
       extensions: [],
       data: commentId,
     }
-  },
+  }
 
   async updateComment(commentId: string, dto: CreateCommentType): Promise<Result<null>> {
-    const comment = await commentsQueryRepository.findById(commentId);
+    const comment = await this.commentsQueryRepository.findById(commentId);
     if (!comment) {
       return {
         status: ResultStatus.NotFound,
@@ -73,16 +83,16 @@ export const commentsService = {
       }
     }
 
-    await commentsRepository.updateComment(commentId, dto.content)
+    await this.commentsRepository.updateComment(commentId, dto.content)
     return {
       status: ResultStatus.Success,
       extensions: [],
       data: null
     }
-  },
+  }
 
   async deleteComment(commentId: string, userId: string): Promise<Result<null>> {
-    const comment = await commentsQueryRepository.findById(commentId);
+    const comment = await this.commentsQueryRepository.findById(commentId);
     if (!comment) {
       return {
         status: ResultStatus.NotFound,
@@ -101,7 +111,7 @@ export const commentsService = {
       }
     }
 
-    await commentsRepository.deleteComment(commentId);
+    await this.commentsRepository.deleteComment(commentId);
     return {
       status: ResultStatus.Success,
       extensions: [],

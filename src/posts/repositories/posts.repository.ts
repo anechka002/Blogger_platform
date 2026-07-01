@@ -3,7 +3,7 @@ import {UpdatePostDto} from "../dto/updatePostDto";
 import {ObjectId, WithId} from "mongodb";
 import {db} from "../../db/mongo.db";
 
-export const postsRepository = {
+export class PostsRepository {
   // Найти пост по ID
   async findById(id: string): Promise<WithId<Post> | null> {
     if (!ObjectId.isValid(id)) {
@@ -12,7 +12,7 @@ export const postsRepository = {
     return await db
       .getCollections()
       .postCollection.findOne({_id: new ObjectId(id)});
-  },
+  }
 
   // Создать новый пост
   async create(post: Post): Promise<string> {
@@ -21,7 +21,7 @@ export const postsRepository = {
       .postCollection.insertOne(post);
 
     return insertResult.insertedId.toString();
-  },
+  }
 
   // Обновить данные поста
   async update(id: string, dto: UpdatePostDto, blogName: string): Promise<boolean> {
@@ -47,7 +47,7 @@ export const postsRepository = {
     );
 
     return isUpdated.matchedCount === 1
-  },
+  }
 
   // Удалить пост
   async delete(id: string): Promise<boolean> {
@@ -60,5 +60,5 @@ export const postsRepository = {
       .postCollection.deleteOne({_id: new ObjectId(id)});
 
     return isDeleted.deletedCount === 1
-  },
-};
+  }
+}

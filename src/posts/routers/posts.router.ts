@@ -8,49 +8,40 @@ import {
 import {
   postInputDtoValidation
 } from "../validation/post.input-dto.validation-middlewares";
-import {getPostListHandler} from "./handlers/get-post-list.handler";
-import {getPostHandler} from "./handlers/get-post.handler";
 import {
   idValidationMiddleware
 } from "../../core/middlewares/validation/params-id.validation-middleware";
-import {deletePostHandler} from "./handlers/delete-post.handler";
-import {createPostHandler} from "./handlers/create-post.handler";
-import {updatePostHandler} from "./handlers/update-post.handler";
 import {
   paginationAndSortingValidation
 } from "../../core/middlewares/validation/query-pagination-sorting.validation-middleware";
 import {PostSortField} from "./input/post-sort-field";
 import {
-  createCommentHandler
-} from "../../comments/routers/handlers/create-comment.handler";
-import {
   commentInputDtoValidation
 } from "../../comments/validation/comment.input-dto.validation-middlewares";
 import {
-  accessTokenGuardMiddleware
-} from "../../auth/middlewares/access.token.guard-middleware";
-import {
-  getCommentListHandler
-} from "../../comments/routers/handlers/get-comment-list.handler";
-import {
   CommentSortField
 } from "../../comments/routers/input/comment-sort-field";
+import {
+  accessToken,
+  commentsController, postInputValidation,
+  postsController
+} from "../../composition-root";
 
 export const postsRouter = Router({});
 
 // blogsRouter.use(superAdminGuardMiddleware); // для всех роутеров
 
 postsRouter
-  .get('/', paginationAndSortingValidation(PostSortField), inputValidationResultMiddleware, getPostListHandler)
+  .get('/', paginationAndSortingValidation(PostSortField), inputValidationResultMiddleware, postsController.getPostList.bind(postsController))
 
-  .post('/', baseAuthGuardMiddleware, postInputDtoValidation, inputValidationResultMiddleware, createPostHandler)
+  .post('/', baseAuthGuardMiddleware, postInputValidation, inputValidationResultMiddleware, postsController.createPost.bind(postsController))
 
-  .get('/:id', idValidationMiddleware(), inputValidationResultMiddleware, getPostHandler)
+  .get('/:id', idValidationMiddleware(), inputValidationResultMiddleware, postsController.getPost.bind(postsController))
 
-  .put('/:id', baseAuthGuardMiddleware, idValidationMiddleware(), postInputDtoValidation, inputValidationResultMiddleware, updatePostHandler)
+  .put('/:id', baseAuthGuardMiddleware, idValidationMiddleware(), postInputValidation, inputValidationResultMiddleware, postsController.updatePost.bind(postsController))
 
-  .delete('/:id', baseAuthGuardMiddleware, idValidationMiddleware(), inputValidationResultMiddleware, deletePostHandler)
+  .delete('/:id', baseAuthGuardMiddleware, idValidationMiddleware(), inputValidationResultMiddleware, postsController.deletePost.bind(postsController))
 
-  .post('/:postId/comments', accessTokenGuardMiddleware, idValidationMiddleware('postId'), commentInputDtoValidation, inputValidationResultMiddleware, createCommentHandler)
+  .post('/:postId/comments', accessToken, idValidationMiddleware('postId'), commentInputDtoValidation, inputValidationResultMiddleware, commentsController.createComment.bind(commentsController))
 
-  .get('/:postId/comments', idValidationMiddleware('postId'), paginationAndSortingValidation(CommentSortField), inputValidationResultMiddleware, getCommentListHandler)
+  .get('/:postId/comments', idValidationMiddleware('postId'), paginationAndSortingValidation(CommentSortField), inputValidationResultMiddleware, commentsController.getCommentList.bind(commentsController))

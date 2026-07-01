@@ -2,9 +2,9 @@ import {IDeviceView} from "../types/device.view.type";
 import {db} from "../../db/mongo.db";
 import {
   mapToDeviceViewModel
-} from "../routers/mappers/map-to-device-view-model.utils";
+} from "./mappers/map-to-device-view-model.utils";
 
-export const devicesQueryRepository = {
+export class DevicesQueryRepository {
   // Возвращает список всех активных устройств пользователя.
   async findAllDevices(userId: string): Promise<IDeviceView[]> {
     // Ищем все активные sessions пользователя.
