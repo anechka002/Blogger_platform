@@ -19,9 +19,11 @@ import {
   searchLoginTermValidation
 } from "../middleware/users-query.validation";
 import {passwordValidation} from "../middleware/password.validation";
-import {emailValidation} from "../middleware/email.validation";
-import {loginValidation} from "../middleware/login.validation";
-import {usersController, usersRepository} from "../../composition-root";
+import {
+  email,
+  login,
+  usersController,
+} from "../../composition-root";
 
 export const usersRouter = Router({});
 
@@ -30,6 +32,6 @@ usersRouter.use(baseAuthGuardMiddleware); // для всех роутеров
 usersRouter
   .get('/', paginationAndSortingValidation(UserSortField), searchLoginTermValidation, searchEmailTermValidation, inputValidationResultMiddleware, usersController.getUsers.bind(usersController))
 
-  .post('/', passwordValidation, emailValidation(usersRepository), loginValidation(usersRepository), inputValidationResultMiddleware, usersController.createUser.bind(usersController))
+  .post('/', passwordValidation, email, login, inputValidationResultMiddleware, usersController.createUser.bind(usersController))
 
   .delete('/:id', idValidationMiddleware(), inputValidationResultMiddleware, usersController.deleteUser.bind(usersController));

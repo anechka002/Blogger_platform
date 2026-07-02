@@ -18,6 +18,12 @@ import {
   rateLimit,
   refreshToken
 } from "../../composition-root";
+import {
+  recoveryCodeValidation
+} from "../../users/middleware/recovery-code.validation";
+import {
+  newPasswordValidation
+} from "../../users/middleware/new-password.validation";
 
 export const authRouter = Router({});
 
@@ -35,3 +41,7 @@ authRouter
   .post('/refresh-token', refreshToken, inputValidationResultMiddleware, authController.refreshToken.bind(authController))
 
   .post('/logout', refreshToken, inputValidationResultMiddleware, authController.logout.bind(authController))
+
+  .post('/password-recovery', rateLimit, emailOnlyValidation, inputValidationResultMiddleware, authController.passwordRecovery.bind(authController))
+
+  .post('/new-password', rateLimit, recoveryCodeValidation, newPasswordValidation, inputValidationResultMiddleware, authController.newPassword.bind(authController))

@@ -8,6 +8,11 @@ export class IUserDB {
     expirationDate: Date
     isConfirmed: boolean
   }
+  public passwordRecovery: {
+    recoveryCode: string | null
+    expirationDate: Date | null
+  }
+
 
   constructor(
     login: string,
@@ -18,6 +23,10 @@ export class IUserDB {
       confirmationCode: string
       expirationDate: Date
       isConfirmed: boolean
+    },
+    passwordRecovery: {
+      recoveryCode: string | null
+      expirationDate: Date | null
     }
   ) {
     this.login = login
@@ -25,5 +34,6 @@ export class IUserDB {
     this.passwordHash = passwordHash
     this.createdAt = createdAt
     this.emailConfirmation = emailConfirmation
+    this.passwordRecovery = passwordRecovery
   }
 }

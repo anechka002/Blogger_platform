@@ -138,6 +138,10 @@ export class AuthService {
           minutes: 3
         }),
         isConfirmed: false
+      },
+      passwordRecovery: {
+        recoveryCode: null,
+        expirationDate: null,
       }
     }
 
@@ -373,4 +377,86 @@ export class AuthService {
     };
   }
 
+  async passwordRecovery(email: string): Promise<Result<null>> {
+    // нашли user по email
+    const userByEmail = await this.usersRepository.findByEmail(email);
+    if (!userByEmail) {
+      return {
+        status: ResultStatus.NoContent,
+        errorMessage: 'No Content',
+        data: null,
+        extensions: [],
+      }
+    }
+
+    // создали recoveryCode
+    const recoveryCode = randomUUID()
+
+    // создали expirationDate
+    const expirationDate = add(new Date(), { hours: 1, minutes: 3 })
+
+    // сохранили это в БД
+    await this.usersRepository.updatePasswordRecoveryCode(
+      userByEmail._id.toString(),
+      recoveryCode,
+      expirationDate
+    )
+
+    // отправили письмо со ссылкой
+    this.nodemailerService.sendEmail(
+      userByEmail.email,
+      'Password recovery',
+      `<h1>Password recovery</h1>
+       <p>To finish password recovery, please follow the link below:</p>
+       <p>${recoveryCode}</p>
+       <a href="https://some-front.com/password-recovery?recoveryCode=${recoveryCode}">Recovery password</a>`
+    ).catch(error => console.log('error in send email', error));
+
+    // вернули 204
+    return {
+      status: ResultStatus.NoContent,
+      errorMessage: 'No Content',
+      data: null,
+      extensions: []
+    }
+  }
+
+  async newPassword({newPassword, recoveryCode}: {newPassword: string, recoveryCode: string}): Promise<Result<null>> {
+    // нашли user по recoveryCode
+    const user = await this.usersRepository.findByRecoveryCode(recoveryCode)
+
+    if (!user) {
+      return {
+        status: ResultStatus.BadRequest,
+        errorMessage: 'Bad Request',
+        data: null,
+        extensions: [{field: 'recoveryCode', message: 'Recovery code is incorrect'}],
+      }
+    }
+
+    // проверили expirationDate
+    if(!user.passwordRecovery.expirationDate || user.passwordRecovery.expirationDate < new Date()) {
+      return {
+        status: ResultStatus.BadRequest,
+        errorMessage: 'Bad Request',
+        data: null,
+        extensions: [{field: 'recoveryCode', message: 'Recovery code is expired'}],
+      }
+    }
+
+    // захэшировали новый пароль
+    const newPasswordHash = await this.argon2Service.generateHash(newPassword);
+
+    // сохранили новый passwordHash и зачистили recoveryCode
+    await this.usersRepository.updatePasswordHashAndClearRecoveryCode({userId: user._id.toString(), newPasswordHash})
+
+    // вернули 204
+    return {
+      status: ResultStatus.NoContent,
+      errorMessage: 'No Content',
+      data: null,
+      extensions: []
+    }
+  }
 }
+

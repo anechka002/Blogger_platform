@@ -21,6 +21,8 @@ import {
 import {
   RegistrationEmailResendingDto
 } from "../../types/registration-email-resending.dto";
+import {PasswordRecoveryDto} from "../../types/password-recovery.dto";
+import {NewPasswordDto} from "../../types/new-password.dto";
 
 export class AuthController {
   protected authService: AuthService
@@ -164,6 +166,30 @@ export class AuthController {
 
     // Зачищаем cookies
     res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'strict', path: '/' })
+
+    return res.sendStatus(HttpStatus.NoContent_204)
+  }
+
+  async passwordRecovery(req: RequestWithBody<PasswordRecoveryDto>, res: Response) {
+    const {email} = req.body
+
+    const result = await this.authService.passwordRecovery(email)
+
+    if(result.status !== ResultStatus.NoContent) {
+      return res.status(resultCodeToHttpException(result.status)).send(result.extensions)
+    }
+
+    return res.sendStatus(HttpStatus.NoContent_204)
+  }
+
+  async newPassword(req: RequestWithBody<NewPasswordDto>, res: Response) {
+    const {newPassword, recoveryCode} = req.body
+
+    const result = await this.authService.newPassword({newPassword, recoveryCode})
+
+    if(result.status !== ResultStatus.NoContent) {
+      return res.status(resultCodeToHttpException(result.status)).send(result.extensions)
+    }
 
     return res.sendStatus(HttpStatus.NoContent_204)
   }

@@ -70,6 +70,7 @@ export class UsersRepository {
     return result.modifiedCount === 1
   }
 
+  // Сохраняем новый confirmationCode и expirationDate для повторной отправки письма подтверждения.
   async updateConfirmationCode(userId: string, code: string, date: Date): Promise<boolean> {
     const result = await db
     .getCollections()
@@ -77,8 +78,44 @@ export class UsersRepository {
         {_id: new ObjectId(userId)},
         {$set: {
           'emailConfirmation.confirmationCode': code,
-            'emailConfirmation.expirationDate': date
+          'emailConfirmation.expirationDate': date
         }},
+      )
+    return result.modifiedCount === 1
+  }
+
+  // Сохраняем новый recoveryCode и дату его истечения для восстановления пароля.
+  async updatePasswordRecoveryCode(userId: string, recoveryCode: string, expirationDate: Date): Promise<boolean> {
+    const result = await db
+    .getCollections()
+    .userCollection.updateOne(
+      {_id: new ObjectId(userId)},
+        {$set: {
+            'passwordRecovery.recoveryCode': recoveryCode,
+            'passwordRecovery.expirationDate': expirationDate
+          }}
+      )
+    return result.modifiedCount === 1
+  }
+
+  // Находим пользователя по recoveryCode для восстановления пароля.
+  async findByRecoveryCode(recoveryCode: string): Promise<WithId<IUserDB> | null> {
+    return await db
+      .getCollections()
+      .userCollection.findOne({'passwordRecovery.recoveryCode': recoveryCode})
+  }
+
+  // Обновляет хэш пароля пользователя и очищает данные восстановления пароля, чтобы recoveryCode нельзя было использовать повторно.
+  async updatePasswordHashAndClearRecoveryCode({userId, newPasswordHash}:{userId: string, newPasswordHash: string}): Promise<boolean> {
+    const result = await db
+      .getCollections()
+      .userCollection.updateOne(
+        {_id: new ObjectId(userId)},
+        {$set: {
+            passwordHash: newPasswordHash,
+            'passwordRecovery.recoveryCode': null,
+            'passwordRecovery.expirationDate': null
+          }}
       )
     return result.modifiedCount === 1
   }

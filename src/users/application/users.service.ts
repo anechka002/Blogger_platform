@@ -41,6 +41,10 @@ export class UsersService {
         confirmationCode: '',
         expirationDate: new Date(),
         isConfirmed: true,
+      },
+      {
+        recoveryCode: null,
+        expirationDate: null,
       }
     )
 
