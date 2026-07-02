@@ -31,6 +31,43 @@ describe('auth body validation e2e', () => {
     email: 'natalia@gmail.com',
   }
 
+  it('POST -> "/auth/new-password": should return validation error if recoveryCode format invalid; status 400', async () => {
+    await request(app)
+      .post(`${AUTH_PATH}/new-password`)
+      .send({ newPassword: 'newPassword123', recoveryCode: '123' })
+      .expect(HttpStatus.BadRequest_400)
+  })
+
+  it('POST -> "/auth/new-password": should return 400 if recovery code is incorrect', async () => {
+    await request(app)
+      .post(`${AUTH_PATH}/new-password`)
+      .send({ newPassword: 'newPassword123', recoveryCode: '550e8400-e29b-41d4-a716-446655440000' })
+      .expect(HttpStatus.BadRequest_400)
+  })
+
+  it('POST -> "/auth/new-password": should return validation error if newPassword is invalid; status 400', async () => {
+    await request(app)
+      .post(`${AUTH_PATH}/new-password`)
+      .send({ newPassword: 'abc', recoveryCode: '550e8400-e29b-41d4-a716-446655440000', })
+      .expect(HttpStatus.BadRequest_400)
+  })
+
+  it('POST -> "/auth/password-recovery": should return 400 if email is invalid', async () => {
+    const response = await request(app)
+      .post(`${AUTH_PATH}/password-recovery`)
+      .send({ email: 'not-email' })
+      .expect(HttpStatus.BadRequest_400)
+
+    expect(response.body).toEqual({
+      errorsMessages: [
+        {
+          message: expect.any(String),
+          field: 'email',
+        },
+      ],
+    })
+  })
+
   it('POST -> "auth/registration": should return error if login is incorrect; status 400', async () => {
     const response = await request(app)
       .post(`${AUTH_PATH}/registration`)

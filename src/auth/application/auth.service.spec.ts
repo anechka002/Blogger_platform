@@ -137,6 +137,10 @@ describe("integration tests for authService", () => {
           confirmationCode: confirmationCode,
           isConfirmed: false,
           expirationDate: expirationDate
+        },
+        passwordRecovery: {
+          recoveryCode: null,
+          expirationDate: null
         }
       }
     }
