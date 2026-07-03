@@ -14,6 +14,7 @@ import {NodemailerService} from "../adapters/nodemailer.service";
 import {
   DevicesSessionsRepository
 } from "../../devices/repositories/devices-sessions.repository";
+import {EmailTemplateManager} from "../infrastructure/email-template.manager";
 
 export class AuthService {
   protected usersRepository: UsersRepository
@@ -21,12 +22,14 @@ export class AuthService {
   protected jwtService: JwtService
   protected nodemailerService: NodemailerService
   protected devicesSessionsRepository: DevicesSessionsRepository
-  constructor(usersRepository: UsersRepository, argon2Service: Argon2Service, jwtService: JwtService, nodemailerService: NodemailerService, devicesSessionsRepository: DevicesSessionsRepository) {
+  protected emailTemplateManager: EmailTemplateManager
+  constructor(usersRepository: UsersRepository, argon2Service: Argon2Service, jwtService: JwtService, nodemailerService: NodemailerService, devicesSessionsRepository: DevicesSessionsRepository, emailTemplateManager: EmailTemplateManager) {
     this.usersRepository = usersRepository;
     this.argon2Service = argon2Service;
     this.jwtService = jwtService;
     this.nodemailerService = nodemailerService;
     this.devicesSessionsRepository = devicesSessionsRepository;
+    this.emailTemplateManager = emailTemplateManager;
   }
 
   // Login пользователя
@@ -148,15 +151,9 @@ export class AuthService {
     const result = await this.usersRepository.create(newUser);
 
     this.nodemailerService.sendEmail(
-      newUser.email,
-      'Registration confirmation',
-      `<h1>Thank you for registration</h1>
-       <p>To finish registration, please confirm your email:</p>
-       <p>Your confirmation code:</p>
-       <p>${newUser.emailConfirmation.confirmationCode}</p>
-       <a href="https://some-front.com/confirm-registration?code=${newUser.emailConfirmation.confirmationCode}">
-         Confirm email
-       </a>`
+        newUser.email,
+'Registration confirmation',
+        this.emailTemplateManager.getRegistrationConfirmationTemplate(newUser.emailConfirmation.confirmationCode)
     ).catch(error => console.log('error in send email', error));
 
     return {
@@ -268,12 +265,9 @@ export class AuthService {
 
     // Отправляем новое письмо
     this.nodemailerService.sendEmail(
-      userByEmail.email,
-      'Registration confirmation',
-      `<p>${newConfirmationCode}</p>
-       <a href="https://some-front.com/confirm-registration?code=${newConfirmationCode}">
-         Confirm email
-       </a>`
+        userByEmail.email,
+'Registration confirmation',
+        this.emailTemplateManager.getRegistrationConfirmationTemplate(newConfirmationCode)
     ).catch(error => console.log('error in send email', error));
 
     // Возвращаем 204
@@ -404,12 +398,9 @@ export class AuthService {
 
     // отправили письмо со ссылкой
     this.nodemailerService.sendEmail(
-      userByEmail.email,
-      'Password recovery',
-      `<h1>Password recovery</h1>
-       <p>To finish password recovery, please follow the link below:</p>
-       <p>${recoveryCode}</p>
-       <a href="https://some-front.com/password-recovery?recoveryCode=${recoveryCode}">Recovery password</a>`
+        userByEmail.email,
+'Password recovery',
+        this.emailTemplateManager.getPasswordRecoveryTemplate(recoveryCode)
     ).catch(error => console.log('error in send email', error));
 
     // вернули 204

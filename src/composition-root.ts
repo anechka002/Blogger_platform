@@ -53,9 +53,10 @@ import {
 import {
   postInputDtoValidation
 } from "./posts/validation/post.input-dto.validation-middlewares";
+import {EmailTemplateManager} from "./auth/infrastructure/email-template.manager";
 
 export const usersRepository = new UsersRepository();
-export const usersQueryRepository  = new UsersQueryRepository();
+const usersQueryRepository  = new UsersQueryRepository();
 const devicesSessionsRepository = new DevicesSessionsRepository();
 const devicesQueryRepository  = new DevicesQueryRepository();
 export const apiRequestLogsRepository = new ApiRequestLogsRepository();
@@ -70,9 +71,10 @@ const bcryptService = new BcryptService();
 const argon2Service = new Argon2Service();
 const jwtService = new JwtService();
 export const nodemailerService = new NodemailerService();
+const emailTemplateManager = new EmailTemplateManager();
 
 const usersService = new UsersService(usersRepository, argon2Service)
-export const authService = new AuthService(usersRepository, argon2Service, jwtService, nodemailerService, devicesSessionsRepository);
+export const authService = new AuthService(usersRepository, argon2Service, jwtService, nodemailerService, devicesSessionsRepository, emailTemplateManager);
 const deviceService = new DeviceService(devicesSessionsRepository);
 const blogsService = new BlogsService(blogsRepository, postsRepository);
 const postsService = new PostsService(blogsRepository, postsRepository)
