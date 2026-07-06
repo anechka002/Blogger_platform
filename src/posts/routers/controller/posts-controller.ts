@@ -16,11 +16,16 @@ import {URIParamsPostIdDto} from "../../dto/URIParamsPostIdDto";
 import {CreatePostDto} from "../../dto/createPostDto";
 import {PostsService} from "../../application/posts.service";
 import {UpdatePostDto} from "../../dto/updatePostDto";
+import {inject, injectable} from "inversify";
 
+@injectable()
 export class PostsController{
   protected postsQueryRepository: PostsQueryRepository
   protected postsService: PostsService
-  constructor(postsQueryRepository: PostsQueryRepository, postsService: PostsService) {
+  constructor(
+    @inject(PostsQueryRepository) postsQueryRepository: PostsQueryRepository,
+    @inject(PostsService) postsService: PostsService
+  ) {
     this.postsQueryRepository = postsQueryRepository
     this.postsService = postsService
   }

@@ -10,7 +10,9 @@ import {
 import {
   RepositoryNotFoundError
 } from "../../core/errors/repositiry-not-found.error";
+import {injectable} from "inversify";
 
+@injectable()
 export class BlogsQueryRepository {
   // Найти все блоги с пагинацией и сортировкой
   async findMany(queryDto: BlogQueryInput): Promise<PaginationOutput<BlogViewDto>>  {

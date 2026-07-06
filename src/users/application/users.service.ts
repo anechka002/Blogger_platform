@@ -8,11 +8,16 @@ import {
 } from "../../core/errors/repositiry-not-found.error";
 import {UniqueFieldError} from "../../core/errors/unique-field.error";
 import {Argon2Service} from "../../auth/adapters/argon.service";
+import {inject, injectable} from "inversify";
 
+@injectable()
 export class UsersService {
   protected usersRepository: UsersRepository
   protected argon2Service: Argon2Service
-  constructor(repo: UsersRepository, argon2Service: Argon2Service) {
+  constructor(
+    @inject(UsersRepository) repo: UsersRepository,
+    @inject(Argon2Service) argon2Service: Argon2Service
+  ) {
     this.usersRepository = repo;
     this.argon2Service = argon2Service;
   }

@@ -2,9 +2,26 @@ import {MongoMemoryServer} from "mongodb-memory-server";
 import {db} from "../../db/mongo.db";
 import {ResultStatus} from "../../core/result/resultCode";
 import {addMinutes} from "date-fns";
-import {authService, nodemailerService} from "../../composition-root";
+import {Argon2Service} from "../adapters/argon.service";
+import {JwtService} from "../adapters/jwt.service";
+import {NodemailerService} from "../adapters/nodemailer.service";
+import {EmailTemplateManager} from "../infrastructure/email-template.manager";
+import {AuthService} from "./auth.service";
+import {
+  DevicesSessionsRepository
+} from "../../devices/repositories/devices-sessions.repository";
+import {UsersRepository} from "../../users/repositories/users.repository";
 
 describe("integration tests for authService", () => {
+  const usersRepository = new UsersRepository()
+  const argon2Service = new Argon2Service();
+  const jwtService = new JwtService();
+  const nodemailerService = new NodemailerService();
+  const emailTemplateManager = new EmailTemplateManager();
+  const devicesSessionsRepository = new DevicesSessionsRepository();
+
+  const authService = new AuthService(usersRepository, argon2Service, jwtService, nodemailerService, devicesSessionsRepository, emailTemplateManager);
+
   let mongoServer: MongoMemoryServer;
   // Переменная, в которой будем хранить наш временный MongoDB-сервер для тестов.
 

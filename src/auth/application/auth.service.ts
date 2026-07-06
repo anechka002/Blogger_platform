@@ -15,7 +15,9 @@ import {
   DevicesSessionsRepository
 } from "../../devices/repositories/devices-sessions.repository";
 import {EmailTemplateManager} from "../infrastructure/email-template.manager";
+import {inject, injectable} from "inversify";
 
+@injectable()
 export class AuthService {
   protected usersRepository: UsersRepository
   protected argon2Service: Argon2Service
@@ -23,7 +25,14 @@ export class AuthService {
   protected nodemailerService: NodemailerService
   protected devicesSessionsRepository: DevicesSessionsRepository
   protected emailTemplateManager: EmailTemplateManager
-  constructor(usersRepository: UsersRepository, argon2Service: Argon2Service, jwtService: JwtService, nodemailerService: NodemailerService, devicesSessionsRepository: DevicesSessionsRepository, emailTemplateManager: EmailTemplateManager) {
+  constructor(
+    @inject(UsersRepository) usersRepository: UsersRepository,
+    @inject(Argon2Service) argon2Service: Argon2Service,
+    @inject(JwtService) jwtService: JwtService,
+    @inject(NodemailerService) nodemailerService: NodemailerService,
+    @inject(DevicesSessionsRepository) devicesSessionsRepository: DevicesSessionsRepository,
+    @inject(EmailTemplateManager) emailTemplateManager: EmailTemplateManager
+  ) {
     this.usersRepository = usersRepository;
     this.argon2Service = argon2Service;
     this.jwtService = jwtService;

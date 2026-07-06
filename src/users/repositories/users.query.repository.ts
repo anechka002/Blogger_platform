@@ -11,8 +11,9 @@ import {IMeView} from "../../auth/types/me.view";
 import {
   mapToMeViewModel
 } from "./mappers/map-to-me-view-model.utils";
+import {injectable} from "inversify";
 
-
+@injectable()
 export class UsersQueryRepository {
   // Найти всех users с пагинацией и сортировкой
   async findAllUsers(queryDto: UserQueryFieldsType): Promise<PaginationOutput<IUserView>> {

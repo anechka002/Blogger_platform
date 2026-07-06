@@ -14,7 +14,7 @@ import {
 } from "../../users/middleware/email-only.validation";
 import {
   accessToken,
-  authController, email, login,
+  container, email, login,
   rateLimit,
   refreshToken
 } from "../../composition-root";
@@ -24,6 +24,9 @@ import {
 import {
   newPasswordValidation
 } from "../../users/middleware/new-password.validation";
+import {AuthController} from "./controller/auth-controller";
+
+const authController = container.get(AuthController)
 
 export const authRouter = Router({});
 

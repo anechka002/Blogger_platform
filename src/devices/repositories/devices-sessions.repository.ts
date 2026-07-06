@@ -1,7 +1,9 @@
 import {db} from "../../db/mongo.db";
 import {ISessionDB} from "../types/session.db.type";
 import {WithId} from "mongodb";
+import {injectable} from "inversify";
 
+@injectable()
 export class DevicesSessionsRepository {
   // Создаёт новую активную device session после успешного login.
   // Одна запись = один вход пользователя с конкретного браузера/устройства.

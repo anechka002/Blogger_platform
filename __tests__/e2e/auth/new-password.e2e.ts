@@ -7,16 +7,24 @@ import { db } from '../../../src/db/mongo.db'
 import { SETTINGS } from '../../../src/core/settings/settings'
 import { clearDb } from '../../utils/clear-db'
 import {registerUser} from "../../utils/auth/register-user";
-import {
-  apiRequestLogsRepository,
-  nodemailerService, usersRepository
-} from "../../../src/composition-root";
+import {container} from "../../../src/composition-root";
 import {randomUUID} from "node:crypto";
 import {add} from "date-fns";
+import {
+  ApiRequestLogsRepository
+} from "../../../src/auth/repositories/api-request-logs.repository";
+import {NodemailerService} from "../../../src/auth/adapters/nodemailer.service";
+import {
+  UsersRepository
+} from "../../../src/users/repositories/users.repository";
 
 describe('New password e2e', () => {
   const app = express()
   setupApp(app)
+
+  const apiRequestLogsRepository = container.get(ApiRequestLogsRepository)
+  const usersRepository = container.get(UsersRepository)
+  const nodemailerService = container.get(NodemailerService)
 
   beforeAll(async () => {
     await db.run(SETTINGS.MONGO_URL)

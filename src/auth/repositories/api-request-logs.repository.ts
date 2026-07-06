@@ -1,6 +1,8 @@
 import {db} from "../../db/mongo.db";
 import {ApiRequestLogDb} from "../types/api-request-log.db.type";
+import {injectable} from "inversify";
 
+@injectable()
 export class ApiRequestLogsRepository {
   // Считает количество запросов с одного IP на один URL за период от tenSecondsAgo до текущего момента.
   async countRecentRequests({originalUrl, ip, tenSecondsAgo}:{originalUrl: string, ip: string, tenSecondsAgo: Date}): Promise<number>{

@@ -2,7 +2,9 @@ import {Post} from "../types/post";
 import {UpdatePostDto} from "../dto/updatePostDto";
 import {ObjectId, WithId} from "mongodb";
 import {db} from "../../db/mongo.db";
+import {injectable} from "inversify";
 
+@injectable()
 export class PostsRepository {
   // Найти пост по ID
   async findById(id: string): Promise<WithId<Post> | null> {

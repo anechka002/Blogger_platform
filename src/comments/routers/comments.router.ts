@@ -8,7 +8,10 @@ import {
 import {
   commentInputDtoValidation
 } from "../validation/comment.input-dto.validation-middlewares";
-import {accessToken, commentsController} from "../../composition-root";
+import {accessToken, container} from "../../composition-root";
+import {CommentsController} from "./controller/comments-controller";
+
+const commentsController = container.get(CommentsController)
 
 export const commentsRouter = Router({});
 

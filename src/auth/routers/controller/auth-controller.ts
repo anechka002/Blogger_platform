@@ -1,3 +1,5 @@
+import { inject, injectable } from 'inversify';
+
 import {
   RequestWithBody,
   RequestWithUserId
@@ -24,13 +26,18 @@ import {
 import {PasswordRecoveryDto} from "../../types/password-recovery.dto";
 import {NewPasswordDto} from "../../types/new-password.dto";
 
+@injectable()
 export class AuthController {
   protected authService: AuthService
   protected usersQueryRepository: UsersQueryRepository
-  constructor(authService: AuthService, usersQueryRepository: UsersQueryRepository) {
+  constructor(
+    @inject(AuthService) authService: AuthService,
+    @inject(UsersQueryRepository) usersQueryRepository: UsersQueryRepository
+  ) {
     this.authService = authService;
     this.usersQueryRepository = usersQueryRepository;
   }
+
   async login(req: RequestWithBody<LoginDto>, res: Response) {
     // Достаём login/email и password из body запроса
     const { loginOrEmail, password } = req.body;

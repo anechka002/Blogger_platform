@@ -26,12 +26,18 @@ import {
   CommentsService
 } from "../../application/comments.service";
 import {URIParamsCommentIdDto} from "../../types/uri-params-comment-id.dto";
+import {inject, injectable} from "inversify";
 
+@injectable()
 export class CommentsController {
   protected postsQueryRepository: PostsQueryRepository;
   protected commentsQueryRepository: CommentsQueryRepository;
   protected commentsService: CommentsService;
-  constructor(postsQueryRepository: PostsQueryRepository, commentsQueryRepository: CommentsQueryRepository, commentsService: CommentsService) {
+  constructor(
+    @inject(PostsQueryRepository) postsQueryRepository: PostsQueryRepository,
+    @inject(CommentsQueryRepository) commentsQueryRepository: CommentsQueryRepository,
+    @inject(CommentsService) commentsService: CommentsService
+  ) {
     this.postsQueryRepository = postsQueryRepository;
     this.commentsQueryRepository = commentsQueryRepository;
     this.commentsService = commentsService;

@@ -1,7 +1,9 @@
 import {ObjectId, WithId} from "mongodb";
 import {IUserDB} from "../types/user.db.type";
 import {db} from "../../db/mongo.db";
+import {injectable} from "inversify";
 
+@injectable()
 export class UsersRepository {
   async findById(id: string): Promise<WithId<IUserDB> | null> {
     return db

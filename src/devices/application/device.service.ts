@@ -3,10 +3,12 @@ import {ResultStatus} from "../../core/result/resultCode";
 import {
   DevicesSessionsRepository
 } from "../repositories/devices-sessions.repository";
+import {inject, injectable} from "inversify";
 
+@injectable()
 export class DeviceService {
   protected devicesSessionsRepository: DevicesSessionsRepository;
-  constructor(devicesSessionsRepository: DevicesSessionsRepository) {
+  constructor(@inject(DevicesSessionsRepository) devicesSessionsRepository: DevicesSessionsRepository) {
     this.devicesSessionsRepository = devicesSessionsRepository;
   }
   // Удаляет все device sessions текущего пользователя, кроме текущей session/device, с которой пришёл refreshToken.

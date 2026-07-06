@@ -7,15 +7,18 @@ import { db } from '../../../src/db/mongo.db'
 import { SETTINGS } from '../../../src/core/settings/settings'
 import { clearDb } from '../../utils/clear-db'
 import {registerUser} from "../../utils/auth/register-user";
+import {container} from "../../../src/composition-root";
 import {
-  apiRequestLogsRepository,
-  nodemailerService
-} from "../../../src/composition-root";
-
+  ApiRequestLogsRepository
+} from "../../../src/auth/repositories/api-request-logs.repository";
+import {NodemailerService} from "../../../src/auth/adapters/nodemailer.service";
 
 describe('Registration-email-resending e2e', () => {
   const app = express()
   setupApp(app)
+
+  const apiRequestLogsRepository = container.get(ApiRequestLogsRepository)
+  const nodemailerService = container.get(NodemailerService)
 
   beforeAll(async () => {
     await db.run(SETTINGS.MONGO_URL)

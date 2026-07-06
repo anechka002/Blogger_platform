@@ -14,11 +14,16 @@ import {
 } from "../../../core/result/resultCodeToHttpException";
 import {DeviceService} from "../../application/device.service";
 import {URIParamsDeviceIdDto} from "../../types/uri-params-device-id.dto";
+import {inject, injectable} from "inversify";
 
+@injectable()
 export class DeviceController {
   protected devicesQueryRepository: DevicesQueryRepository;
   protected deviceService: DeviceService;
-  constructor(devicesQueryRepository: DevicesQueryRepository, deviceService: DeviceService) {
+  constructor(
+    @inject(DevicesQueryRepository) devicesQueryRepository: DevicesQueryRepository,
+    @inject(DeviceService) deviceService: DeviceService
+  ) {
     this.devicesQueryRepository = devicesQueryRepository;
     this.deviceService = deviceService;
   }

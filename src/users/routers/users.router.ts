@@ -20,10 +20,13 @@ import {
 } from "../middleware/users-query.validation";
 import {passwordValidation} from "../middleware/password.validation";
 import {
+  container,
   email,
   login,
-  usersController,
 } from "../../composition-root";
+import {UsersController} from "./controller/users-controller";
+
+const usersController = container.get(UsersController)
 
 export const usersRouter = Router({});
 

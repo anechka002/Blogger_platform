@@ -7,11 +7,16 @@ import {CreatePostDto} from "../dto/createPostDto";
 import {DomainError} from "../../core/errors/domain.error";
 import {BlogsRepository} from "../../blogs/repositories/blogs.repository";
 import {PostsRepository} from "../repositories/posts.repository";
+import {inject, injectable} from "inversify";
 
+@injectable()
 export class PostsService {
   protected blogsRepository: BlogsRepository;
   protected postsRepository: PostsRepository;
-  constructor(blogsRepository: BlogsRepository, postsRepository: PostsRepository) {
+  constructor(
+    @inject(BlogsRepository) blogsRepository: BlogsRepository,
+    @inject(PostsRepository) postsRepository: PostsRepository
+  ) {
     this.blogsRepository = blogsRepository;
     this.postsRepository = postsRepository;
   }

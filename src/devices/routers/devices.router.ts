@@ -2,11 +2,11 @@ import {Router} from "express";
 import {
   inputValidationResultMiddleware
 } from "../../core/middlewares/validation/input-validation-result.middleware";
-import {
-  refreshTokenGuardMiddleware
-} from "../../auth/middlewares/refresh.token.guard-middleware";
 import {deviceIdValidation} from "../middleware/devaice-id.validation";
-import {deviceController, refreshToken} from "../../composition-root";
+import {container, refreshToken} from "../../composition-root";
+import {DeviceController} from "./controller/device-controller";
+
+const deviceController = container.get(DeviceController)
 
 export const devicesRouter = Router({});
 

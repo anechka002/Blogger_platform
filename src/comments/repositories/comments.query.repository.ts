@@ -10,7 +10,9 @@ import {
 import {CommentQueryInput} from "../routers/input/comment-query.input";
 import {PaginationOutput} from "../../core/types/pagination.output";
 import {calculateSkip} from "../../core/utils/calculateSkip";
+import {injectable} from "inversify";
 
+@injectable()
 export class CommentsQueryRepository {
   async findById(id: string): Promise<ICommentView | null> {
     if(!ObjectId.isValid(id)) {

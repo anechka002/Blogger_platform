@@ -23,12 +23,18 @@ import {
   PostsQueryRepository,
 } from "../../../posts/repositories/posts.query.repository";
 import {CreatePostForBlogDto} from "../../dto/createPostForBlogDto";
+import {inject, injectable} from "inversify";
 
+@injectable()
 export class BlogsController {
   protected blogsQueryRepository: BlogsQueryRepository;
   protected blogsService: BlogsService;
   protected postsQueryRepository: PostsQueryRepository;
-  constructor(blogsQueryRepository: BlogsQueryRepository, blogsService: BlogsService, postsQueryRepository: PostsQueryRepository) {
+  constructor(
+    @inject(BlogsQueryRepository) blogsQueryRepository: BlogsQueryRepository,
+    @inject(BlogsService) blogsService: BlogsService,
+    @inject(PostsQueryRepository) postsQueryRepository: PostsQueryRepository
+  ) {
     this.blogsQueryRepository = blogsQueryRepository;
     this.blogsService = blogsService;
     this.postsQueryRepository = postsQueryRepository;

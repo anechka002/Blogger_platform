@@ -7,13 +7,17 @@ import { db } from '../../../src/db/mongo.db'
 import { SETTINGS } from '../../../src/core/settings/settings'
 import { clearDb } from '../../utils/clear-db'
 import { createUser } from '../../utils/users/create-user'
+import {container} from "../../../src/composition-root";
 import {
-  apiRequestLogsRepository
-} from "../../../src/composition-root";
+  ApiRequestLogsRepository
+} from "../../../src/auth/repositories/api-request-logs.repository";
+
 
 describe('Login e2e', () => {
   const app = express()
   setupApp(app)
+
+  const apiRequestLogsRepository = container.get(ApiRequestLogsRepository)
 
   beforeAll(async () => {
     await db.run(SETTINGS.MONGO_URL)

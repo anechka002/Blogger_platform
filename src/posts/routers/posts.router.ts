@@ -6,9 +6,6 @@ import {
   baseAuthGuardMiddleware
 } from "../../auth/middlewares/base.auth.guard-middleware";
 import {
-  postInputDtoValidation
-} from "../validation/post.input-dto.validation-middlewares";
-import {
   idValidationMiddleware
 } from "../../core/middlewares/validation/params-id.validation-middleware";
 import {
@@ -23,9 +20,16 @@ import {
 } from "../../comments/routers/input/comment-sort-field";
 import {
   accessToken,
-  commentsController, postInputValidation,
-  postsController
+  container, postInputValidation,
 } from "../../composition-root";
+import {PostsController} from "./controller/posts-controller";
+import {
+  CommentsController
+} from "../../comments/routers/controller/comments-controller";
+
+
+const postsController = container.get(PostsController)
+const commentsController = container.get(CommentsController)
 
 export const postsRouter = Router({});
 

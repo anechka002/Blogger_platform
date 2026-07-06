@@ -5,7 +5,9 @@ import { ObjectId, WithId } from 'mongodb';
 import {
   RepositoryNotFoundError
 } from "../../core/errors/repositiry-not-found.error";
+import {injectable} from "inversify";
 
+@injectable()
 export class BlogsRepository {
   // Найти блог по ID
   async findById(id: string): Promise<WithId<Blog> | null> {

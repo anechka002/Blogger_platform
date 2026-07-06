@@ -1,3 +1,6 @@
+import {injectable} from "inversify";
+
+@injectable()
 export class EmailTemplateManager {
   getRegistrationConfirmationTemplate(code: string): string {
     return`<h1>Thank you for registration</h1>

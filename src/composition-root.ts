@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+import { Container } from 'inversify';
 import {UsersRepository} from "./users/repositories/users.repository";
 import {UsersService} from "./users/application/users.service";
 import {UsersController} from "./users/routers/controller/users-controller";
@@ -55,41 +57,44 @@ import {
 } from "./posts/validation/post.input-dto.validation-middlewares";
 import {EmailTemplateManager} from "./auth/infrastructure/email-template.manager";
 
-export const usersRepository = new UsersRepository();
-const usersQueryRepository  = new UsersQueryRepository();
-const devicesSessionsRepository = new DevicesSessionsRepository();
-const devicesQueryRepository  = new DevicesQueryRepository();
-export const apiRequestLogsRepository = new ApiRequestLogsRepository();
-const blogsQueryRepository = new BlogsQueryRepository();
-const blogsRepository  = new BlogsRepository();
-const postsQueryRepository = new PostsQueryRepository();
-const postsRepository = new PostsRepository();
-const commentsQueryRepository = new CommentsQueryRepository();
-const commentsRepository = new CommentsRepository();
+export const container: Container = new Container();
 
-const bcryptService = new BcryptService();
-const argon2Service = new Argon2Service();
-const jwtService = new JwtService();
-export const nodemailerService = new NodemailerService();
-const emailTemplateManager = new EmailTemplateManager();
+container.bind(UsersRepository).to(UsersRepository).inSingletonScope();
+container.bind(UsersQueryRepository).to(UsersQueryRepository);
+container.bind(DevicesSessionsRepository).to(DevicesSessionsRepository);
+container.bind(DevicesQueryRepository).to(DevicesQueryRepository);
+container.bind(ApiRequestLogsRepository).to(ApiRequestLogsRepository).inSingletonScope();
 
-const usersService = new UsersService(usersRepository, argon2Service)
-export const authService = new AuthService(usersRepository, argon2Service, jwtService, nodemailerService, devicesSessionsRepository, emailTemplateManager);
-const deviceService = new DeviceService(devicesSessionsRepository);
-const blogsService = new BlogsService(blogsRepository, postsRepository);
-const postsService = new PostsService(blogsRepository, postsRepository)
-const commentsService = new CommentsService(usersQueryRepository, postsQueryRepository, commentsRepository, commentsQueryRepository);
+container.bind(BlogsQueryRepository).to(BlogsQueryRepository);
+container.bind(BlogsRepository).to(BlogsRepository);
+container.bind(PostsQueryRepository).to(PostsQueryRepository);
+container.bind(PostsRepository).to(PostsRepository);
+container.bind(CommentsQueryRepository).to(CommentsQueryRepository);
+container.bind(CommentsRepository).to(CommentsRepository);
 
-export const authController = new AuthController(authService, usersQueryRepository);
-export const usersController = new UsersController(usersService, usersQueryRepository);
-export const deviceController = new DeviceController(devicesQueryRepository, deviceService);
-export const blogsController = new BlogsController(blogsQueryRepository, blogsService, postsQueryRepository);
-export const postsController = new PostsController(postsQueryRepository, postsService)
-export const commentsController = new CommentsController(postsQueryRepository, commentsQueryRepository, commentsService)
+container.bind(BcryptService).to(BcryptService);
+container.bind(Argon2Service).to(Argon2Service);
+container.bind(JwtService).to(JwtService);
+container.bind(NodemailerService).to(NodemailerService).inSingletonScope();
+container.bind(EmailTemplateManager).to(EmailTemplateManager);
 
-export const rateLimit = rateLimitMiddleware(apiRequestLogsRepository)
-export const refreshToken = refreshTokenGuardMiddleware(devicesSessionsRepository, jwtService)
-export const accessToken = accessTokenGuardMiddleware(jwtService)
-export const email = emailValidation(usersRepository)
-export const login = loginValidation(usersRepository)
-export const postInputValidation = postInputDtoValidation(blogsRepository)
+container.bind(UsersService).to(UsersService);
+container.bind(AuthService).to(AuthService);
+container.bind(DeviceService).to(DeviceService);
+container.bind(BlogsService).to(BlogsService);
+container.bind(PostsService).to(PostsService);
+container.bind(CommentsService).to(CommentsService);
+
+container.bind(UsersController).to(UsersController);
+container.bind(AuthController).to(AuthController);
+container.bind(DeviceController).to(DeviceController);
+container.bind(BlogsController).to(BlogsController);
+container.bind(PostsController).to(PostsController);
+container.bind(CommentsController).to(CommentsController);
+
+export const rateLimit = rateLimitMiddleware(container.get(ApiRequestLogsRepository))
+export const refreshToken = refreshTokenGuardMiddleware(container.get(DevicesSessionsRepository), container.get(JwtService))
+export const accessToken = accessTokenGuardMiddleware(container.get(JwtService))
+export const email = emailValidation(container.get(UsersRepository))
+export const login = loginValidation(container.get(UsersRepository))
+export const postInputValidation = postInputDtoValidation(container.get(BlogsRepository))

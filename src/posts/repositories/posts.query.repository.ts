@@ -16,7 +16,9 @@ import {
 import {
   mapToPostListPaginationOutput
 } from "../routers/mappers/map-to-post-list-pagination-output.util";
+import {injectable} from "inversify";
 
+@injectable()
 export class PostsQueryRepository {
   // Найти все посты у которых поле blogId равно этому blogId
   async findManyByBlogId(blogId: string, queryDto: BlogPostsQueryInput): Promise<PaginationOutput<PostViewDto>> {

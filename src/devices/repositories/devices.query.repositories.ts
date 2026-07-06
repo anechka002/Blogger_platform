@@ -3,7 +3,9 @@ import {db} from "../../db/mongo.db";
 import {
   mapToDeviceViewModel
 } from "./mappers/map-to-device-view-model.utils";
+import {injectable} from "inversify";
 
+@injectable()
 export class DevicesQueryRepository {
   // Возвращает список всех активных устройств пользователя.
   async findAllDevices(userId: string): Promise<IDeviceView[]> {

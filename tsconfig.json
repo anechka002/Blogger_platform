@@ -6,6 +6,8 @@
     "outDir": "./dist",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
 
     "forceConsistentCasingInFileNames": true,
     "strict": true,

@@ -18,7 +18,10 @@ import {
   blogPostInputDtoValidation
 } from "../../posts/validation/post.input-dto.validation-middlewares";
 import {searchNameTermValidation} from "../validation/blogs-query.validation";
-import {blogsController} from "../../composition-root";
+import {container} from "../../composition-root";
+import {BlogsController} from "./controller/blogs-controller";
+
+const blogsController = container.get(BlogsController)
 
 export const blogsRouter = Router({});
 

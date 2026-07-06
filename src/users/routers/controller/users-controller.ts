@@ -13,11 +13,16 @@ import {errorsHandler} from "../../../core/errors/errors.handler";
 import {PaginationOutput} from "../../../core/types/pagination.output";
 import {UserQueryFieldsType} from "../../types/user-query-fields.type";
 import {UsersQueryRepository} from "../../repositories/users.query.repository";
+import {inject, injectable} from "inversify";
 
+@injectable()
 export class UsersController {
   protected usersService: UsersService
   protected usersQueryRepository: UsersQueryRepository
-  constructor(service: UsersService, usersQueryRepository: UsersQueryRepository) {
+  constructor(
+    @inject(UsersService) service: UsersService,
+    @inject(UsersQueryRepository) usersQueryRepository: UsersQueryRepository
+  ) {
     this.usersService = service
     this.usersQueryRepository = usersQueryRepository
   }
