@@ -1,5 +1,4 @@
 import {CreateCommentType} from "../types/create-comment.type";
-import {ICommentDB} from "../types/comment.db.type";
 import {ResultStatus} from "../../core/result/resultCode";
 import {Result} from "../../core/result/result.type";
 import {
@@ -13,6 +12,7 @@ import {
   CommentsQueryRepository
 } from "../repositories/comments.query.repository";
 import {inject, injectable} from "inversify";
+import {CommentModel} from "../domain/comment.entity";
 
 @injectable()
 export class CommentsService {
@@ -52,17 +52,19 @@ export class CommentsService {
       }
     }
 
-    const newComment: ICommentDB = {
-      postId: postId,
-      content: dto.content,
-      commentatorInfo: {
-        userId: user!.userId,
-        userLogin: user!.login,
-      },
-      createdAt: new Date(),
-    }
+    const newComment = new CommentModel(
+      {
+        postId: postId,
+        content: dto.content,
+        commentatorInfo: {
+          userId: user!.userId,
+          userLogin: user!.login,
+        },
+        createdAt: new Date(),
+      }
+    )
 
-    const commentId = await this.commentsRepository.createComment(newComment);
+    const commentId = await this.commentsRepository.save(newComment);
     return {
       status: ResultStatus.Success,
       extensions: [],
@@ -71,7 +73,7 @@ export class CommentsService {
   }
 
   async updateComment(commentId: string, dto: CreateCommentType): Promise<Result<null>> {
-    const comment = await this.commentsQueryRepository.findById(commentId);
+    const comment = await this.commentsRepository.findById(commentId);
     if (!comment) {
       return {
         status: ResultStatus.NotFound,
@@ -90,7 +92,10 @@ export class CommentsService {
       }
     }
 
-    await this.commentsRepository.updateComment(commentId, dto.content)
+    comment.content = dto.content;
+
+    await comment.save()
+
     return {
       status: ResultStatus.Success,
       extensions: [],
@@ -99,7 +104,7 @@ export class CommentsService {
   }
 
   async deleteComment(commentId: string, userId: string): Promise<Result<null>> {
-    const comment = await this.commentsQueryRepository.findById(commentId);
+    const comment = await this.commentsRepository.findById(commentId);
     if (!comment) {
       return {
         status: ResultStatus.NotFound,
@@ -118,7 +123,8 @@ export class CommentsService {
       }
     }
 
-    await this.commentsRepository.deleteComment(commentId);
+    await comment.deleteOne()
+
     return {
       status: ResultStatus.Success,
       extensions: [],

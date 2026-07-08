@@ -4,6 +4,7 @@ import {ApiRequestLogDb} from "../types/api-request-log.db.type";
 import {
   ApiRequestLogsRepository
 } from "../repositories/api-request-logs.repository";
+import {ApiRequestLogModel} from "../domain/api-request-log.entity";
 
 // Middleware для ограничения количества запросов.
 // Разрешает не более 5 запросов с одного IP на один URL за последние 10 секунд.
@@ -36,21 +37,24 @@ export const rateLimitMiddleware = (apiRequestLogsRepository: ApiRequestLogsRepo
     }
 
     // Формируем объект для сохранения информации о текущем запросе.
-    const requestLog: ApiRequestLogDb = {
-      URL: originalUrl,
-      IP: ip,
-      date: new Date()
+    try {
+      const requestLog = new ApiRequestLogModel(
+        {
+          URL: originalUrl,
+          IP: ip,
+          date: new Date()
+        }
+      )
+      // Сохраняем информацию о запросе в БД.
+      await apiRequestLogsRepository.create(requestLog)
+
+      // Передаём управление следующему middleware или handler.
+      next()
+    } catch (err) {
+      console.error('Error in rateLimitMiddleware:', err)
+
+      // Если сохранить запись не удалось, возвращаем ошибку сервера.
+      return res.sendStatus(HttpStatus.InternalServerError_500)
     }
-
-    // Сохраняем информацию о запросе в БД.
-    const isRequestLogCreated = await apiRequestLogsRepository.create(requestLog)
-
-    // Если сохранить запись не удалось, возвращаем ошибку сервера.
-    if(!isRequestLogCreated){
-      return res.sendStatus(HttpStatus.InternalServerError_500);
-    }
-
-    // Передаём управление следующему middleware или handler.
-    next()
   }
 }

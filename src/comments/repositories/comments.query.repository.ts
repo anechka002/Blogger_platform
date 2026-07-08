@@ -1,9 +1,7 @@
 import {ICommentView} from "../types/comment.view.type";
-import {ObjectId} from "mongodb";
 import {
   RepositoryNotFoundError
 } from "../../core/errors/repositiry-not-found.error";
-import {db} from "../../db/mongo.db";
 import {
   mapToCommentViewModel
 } from "./mappers/map-to-comment-view-model.utils";
@@ -11,27 +9,25 @@ import {CommentQueryInput} from "../routers/input/comment-query.input";
 import {PaginationOutput} from "../../core/types/pagination.output";
 import {calculateSkip} from "../../core/utils/calculateSkip";
 import {injectable} from "inversify";
+import mongoose from "mongoose";
+import {CommentModel} from "../domain/comment.entity";
 
 @injectable()
 export class CommentsQueryRepository {
   async findById(id: string): Promise<ICommentView | null> {
-    if(!ObjectId.isValid(id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return null
     }
-    const foundComment = await db
-      .getCollections()
-      .commentCollection.findOne({_id: new ObjectId(id)});
+    const foundComment = await CommentModel.findById(id).lean();
 
     return foundComment ? mapToCommentViewModel(foundComment) : null
   }
 
   async findByIdOrFail(id: string): Promise<ICommentView> {
-    if(!ObjectId.isValid(id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new RepositoryNotFoundError(`Comment with id ${id} not found`)
     }
-    const foundComment = await db
-      .getCollections()
-      .commentCollection.findOne({_id: new ObjectId(id)})
+    const foundComment = await CommentModel.findById(id).lean();
 
     if(!foundComment) {
       throw new RepositoryNotFoundError(`Comment with id ${id} not found`)
@@ -46,18 +42,14 @@ export class CommentsQueryRepository {
     const filter = { postId }
     const skip = calculateSkip(pageNumber, pageSize);
 
-    const items = await db
-      .getCollections()
-      .commentCollection
+    const items = await CommentModel
       .find(filter)
       .skip(skip)
       .sort({[sortBy]: sortDirection})
       .limit(pageSize)
-      .toArray();
+      .lean()
 
-    const totalCount = await db
-      .getCollections()
-      .commentCollection.countDocuments(filter)
+    const totalCount = await CommentModel.countDocuments(filter)
 
     return {
       pagesCount: Math.ceil(totalCount / queryInput.pageSize),

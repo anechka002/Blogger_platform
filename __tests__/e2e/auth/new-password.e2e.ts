@@ -97,11 +97,10 @@ describe('New password e2e', () => {
 
     const user = await usersRepository.findByEmail(userDto.email)
 
-    await usersRepository.updatePasswordRecoveryCode(
-      user!._id.toString(),
-      recoveryCode,
-      expirationDate,
-    )
+    user!.passwordRecovery.recoveryCode = recoveryCode
+    user!.passwordRecovery.expirationDate = expirationDate
+
+    await usersRepository.save(user!)
 
     await request(app)
       .post(`${AUTH_PATH}/new-password`)

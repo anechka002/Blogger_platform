@@ -11,6 +11,7 @@ import {
   DevicesSessionsRepository
 } from "../../devices/repositories/devices-sessions.repository";
 import {UsersRepository} from "../../users/repositories/users.repository";
+import {UserModel} from "../../users/domain/user.entity";
 
 describe("integration tests for authService", () => {
   const usersRepository = new UsersRepository()
@@ -148,7 +149,7 @@ describe("integration tests for authService", () => {
       return {
         login: 'Anna',
         email: email,
-        passwordHash: '',
+        passwordHash: 'hash',
         createdAt: new Date(),
         emailConfirmation: {
           confirmationCode: confirmationCode,
@@ -163,10 +164,7 @@ describe("integration tests for authService", () => {
     }
 
     it("should return null for expired confirmation code", async () => {
-      await db
-        .getCollections()
-        .userCollection
-        .insertOne(
+      await UserModel.create(
           createUser(
             'superCode',
             addMinutes(new Date(), -1),
@@ -179,7 +177,7 @@ describe("integration tests for authService", () => {
       expect(result.data).toBeNull()
       expect(result.status).toBe(ResultStatus.BadRequest)
 
-      const userFromDb = await db.getCollections().userCollection.findOne({email: 'anna@anna.com'})
+      const userFromDb = await UserModel.findOne({email: 'anna@anna.com'})
       expect(userFromDb?.emailConfirmation.isConfirmed).toBe(false)
     })
 
@@ -193,8 +191,8 @@ describe("integration tests for authService", () => {
 
     it("should return user for existing and not expired confirmation code", async () => {
       let user = createUser('goodCode', addMinutes(new Date(), 1), 'good-code-user@anna.com')
-
-      await db.getCollections().userCollection.insertOne(user)
+      const userDocument = new UserModel(user)
+      await userDocument.save()
 
       const result = await authService.registrationConfirmation('goodCode')
 
@@ -204,7 +202,7 @@ describe("integration tests for authService", () => {
       expect(result.data?.email).toBe('good-code-user@anna.com')
       expect(result.data?.emailConfirmation.isConfirmed).toBe(true)
 
-      const userFromDb = await db.getCollections().userCollection.findOne({email: 'good-code-user@anna.com'})
+      const userFromDb = await UserModel.findOne({email: 'good-code-user@anna.com'})
       expect(userFromDb?.emailConfirmation.isConfirmed).toBe(true)
     })
 

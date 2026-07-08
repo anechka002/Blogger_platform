@@ -3,6 +3,7 @@ import { Express } from 'express'
 import {AUTH_PATH} from "../../../src/core/paths/paths";
 import {HttpStatus} from "../../../src/core/types/http-statuses";
 import {db} from "../../../src/db/mongo.db";
+import {UserModel} from "../../../src/users/domain/user.entity";
 
 export const registerUser = async (app: Express, userDto: {
   login: string
@@ -14,7 +15,7 @@ export const registerUser = async (app: Express, userDto: {
     .send(userDto)
     .expect(HttpStatus.NoContent_204)
 
-  const user = await db.getCollections().userCollection.findOne({
+  const user = await UserModel.findOne({
     email: userDto.email,
   })
 

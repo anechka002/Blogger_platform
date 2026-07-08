@@ -59,18 +59,8 @@ export class DeviceService {
       }
     }
 
-    // Удаляем session только если она принадлежит текущему пользователю.
-    const isDeleted = await this.devicesSessionsRepository.deleteOneByUserIdAndDeviceId({userId, deviceId});
-
-    // Если удалить не получилось — значит session уже была удалена или произошла рассинхронизация между проверкой и удалением.
-    if(!isDeleted) {
-      return {
-        status: ResultStatus.NotFound,
-        data: false,
-        errorMessage: 'NotFound',
-        extensions: [],
-      }
-    }
+    // Удаляем session, принадлежит текущему пользователю.
+    await session.deleteOne()
 
     return {
       status: ResultStatus.Success,

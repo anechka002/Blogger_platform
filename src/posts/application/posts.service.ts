@@ -1,4 +1,3 @@
-import {Post} from "../types/post";
 import {UpdatePostDto} from "../dto/updatePostDto";
 import {
   RepositoryNotFoundError
@@ -8,6 +7,7 @@ import {DomainError} from "../../core/errors/domain.error";
 import {BlogsRepository} from "../../blogs/repositories/blogs.repository";
 import {PostsRepository} from "../repositories/posts.repository";
 import {inject, injectable} from "inversify";
+import {PostModel} from "../domain/post.entity";
 
 @injectable()
 export class PostsService {
@@ -24,16 +24,18 @@ export class PostsService {
   async create(dto: CreatePostDto): Promise<string> {
     const foundBlog = await this.blogsRepository.findByIdOrFail(dto.blogId)
 
-    const newPost: Post = {
-      title: dto.title,
-      shortDescription: dto.shortDescription,
-      content: dto.content,
-      blogId: dto.blogId,
-      blogName: foundBlog!.name,
-      createdAt: new Date(),
-    }
+    const newPost = new PostModel (
+      {
+        title: dto.title,
+        shortDescription: dto.shortDescription,
+        content: dto.content,
+        blogId: dto.blogId,
+        blogName: foundBlog!.name,
+        createdAt: new Date(),
+      }
+    )
 
-    return await this.postsRepository.create(newPost)
+    return await this.postsRepository.save(newPost)
   }
 
   // Обновить данные поста
@@ -50,7 +52,15 @@ export class PostsService {
       throw new DomainError('Blog does not exist', 'blogId')
     }
 
-    return await this.postsRepository.update(id, dto, foundBlog.name)
+    foundPost.title = dto.title
+    foundPost.shortDescription = dto.shortDescription
+    foundPost.content = dto.content
+    foundPost.blogId = dto.blogId
+    foundPost.blogName = foundBlog.name
+
+    await foundPost.save()
+
+    return true
   }
 
   // Удалить пост
@@ -61,6 +71,8 @@ export class PostsService {
       throw new RepositoryNotFoundError('Post not found')
     }
 
-    return await this.postsRepository.delete(id)
+    await foundPost.deleteOne()
+
+    return true
   }
 }

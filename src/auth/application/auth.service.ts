@@ -7,7 +7,6 @@ import {IUserDB} from "../../users/types/user.db.type";
 import {add} from "date-fns";
 import {randomUUID} from "node:crypto";
 import {ILoginView} from "../types/login.view.type";
-import {ISessionDB} from "../../devices/types/session.db.type";
 import {Argon2Service} from "../adapters/argon.service";
 import {JwtService} from "../adapters/jwt.service";
 import {NodemailerService} from "../adapters/nodemailer.service";
@@ -16,6 +15,8 @@ import {
 } from "../../devices/repositories/devices-sessions.repository";
 import {EmailTemplateManager} from "../infrastructure/email-template.manager";
 import {inject, injectable} from "inversify";
+import {UserModel} from "../../users/domain/user.entity";
+import {DeviceModel} from "../../devices/domain/device.entity";
 
 @injectable()
 export class AuthService {
@@ -91,16 +92,18 @@ export class AuthService {
 
     // Создаём документ активной сессии устройства.
     // Эта запись показывает, что пользователь залогинен с конкретного браузера/устройства.
-    const session: ISessionDB = {
-      user_id: user._id.toString(),
-      device_id: deviceId,
-      // JWT хранит iat/exp в секундах, а new Date() ждёт миллисекунды, поэтому умножаем на 1000.
-      iat: new Date(payload.iat * 1000),
-      device_name: deviceName,
-      ip,
-      // Дата, когда refreshToken и эта session должны протухнуть
-      exp: new Date(payload.exp * 1000)
-    }
+    const session = new DeviceModel (
+      {
+        user_id: user._id.toString(),
+        device_id: deviceId,
+        // JWT хранит iat/exp в секундах, а new Date() ждёт миллисекунды, поэтому умножаем на 1000.
+        iat: new Date(payload.iat * 1000),
+        device_name: deviceName,
+        ip,
+        // Дата, когда refreshToken и эта session должны протухнуть
+        exp: new Date(payload.exp * 1000)
+      }
+    )
 
     // Сохраняем активную сессию устройства в БД.
     await this.devicesSessionsRepository.addSession(session)
@@ -138,26 +141,28 @@ export class AuthService {
 
     const passwordHash = await this.argon2Service.generateHash(password);
 
-    const newUser: IUserDB = {
-      login,
-      email,
-      passwordHash,
-      createdAt: new Date(),
-      emailConfirmation: {
-        confirmationCode: randomUUID(),
-        expirationDate: add(new Date(), {
-          hours: 1,
-          minutes: 3
-        }),
-        isConfirmed: false
-      },
-      passwordRecovery: {
-        recoveryCode: null,
-        expirationDate: null,
+    const newUser = new UserModel(
+      {
+        login,
+        email,
+        passwordHash,
+        createdAt: new Date(),
+        emailConfirmation: {
+          confirmationCode: randomUUID(),
+          expirationDate: add(new Date(), {
+            hours: 1,
+            minutes: 3
+          }),
+          isConfirmed: false
+        },
+        passwordRecovery: {
+          recoveryCode: null,
+          expirationDate: null,
+        }
       }
-    }
+    )
 
-    const result = await this.usersRepository.create(newUser);
+    await this.usersRepository.save(newUser);
 
     this.nodemailerService.sendEmail(
         newUser.email,
@@ -207,36 +212,29 @@ export class AuthService {
       }
     }
 
-    // Найди пользователя по id
-    // и обнови ему:
-    // emailConfirmation.isConfirmed = true
-    const isConfirmed = await this.usersRepository.confirmEmail(user._id.toString())
-    if (!isConfirmed) {
-      return {
-        status: ResultStatus.BadRequest,
-        errorMessage: 'Bad Request',
-        data: null,
-        extensions: [{ message: 'Email was not confirmed', field: 'emailConfirmation.isConfirmed' }],
-      }
-    }
+    // меняем поле прямо у документа
+    user.emailConfirmation.isConfirmed = true
 
-    // после confirmEmail ещё раз найти пользователя
-    const confirmedUser = await this.usersRepository.findById(user._id.toString())
+    // Очистка кода — это просто дополнительная “уборка”: код уже не нужен, можно стереть.
+    user.emailConfirmation.confirmationCode = null
+
+    // сохраняем изменения в MongoDB
+    await this.usersRepository.save(user)
 
     return {
       status: ResultStatus.Success,
       extensions: [],
-      data: confirmedUser
+      data: user
     }
   }
 
   // Повторно отправляет письмо для подтверждения регистрации
   async registrationEmailResending(email: string): Promise<Result<IUserDB | null>> {
     // Ищем user по email
-    const userByEmail = await this.usersRepository.findByEmail(email);
+    const user = await this.usersRepository.findByEmail(email);
 
     // Если user не найден → 400
-    if (!userByEmail) {
+    if (!user) {
       return {
         status: ResultStatus.BadRequest,
         errorMessage: 'Bad Request',
@@ -246,7 +244,7 @@ export class AuthService {
     }
 
     // Если user уже подтверждён → 400
-    if (userByEmail.emailConfirmation.isConfirmed) {
+    if (user.emailConfirmation.isConfirmed) {
       return {
         status: ResultStatus.BadRequest,
         errorMessage: 'Bad Request',
@@ -262,19 +260,14 @@ export class AuthService {
     const newExpirationDate = add(new Date(), {hours: 1,minutes: 3})
 
     // Обновляем user в базе
-    const isUpdated = await this.usersRepository.updateConfirmationCode(userByEmail._id.toString(), newConfirmationCode, newExpirationDate)
-    if (!isUpdated) {
-      return {
-        status: ResultStatus.BadRequest,
-        errorMessage: 'Bad Request',
-        data: null,
-        extensions: [{ message: 'Confirmation code was not updated', field: 'email' }],
-      }
-    }
+    user.emailConfirmation.confirmationCode = newConfirmationCode
+    user.emailConfirmation.expirationDate = newExpirationDate
+
+    await this.usersRepository.save(user)
 
     // Отправляем новое письмо
     this.nodemailerService.sendEmail(
-        userByEmail.email,
+        user.email,
 'Registration confirmation',
         this.emailTemplateManager.getRegistrationConfirmationTemplate(newConfirmationCode)
     ).catch(error => console.log('error in send email', error));
@@ -359,7 +352,6 @@ export class AuthService {
       }
     }
 
-
     // Удаляем активную session текущего устройства.
     // Ищем именно по userId + deviceId + oldIat, чтобы удалить конкретную session, с которой пришёл refreshToken.
     const isSessionDeleted = await this.devicesSessionsRepository.deleteSession({userId: user._id.toString(), deviceId, oldIat})
@@ -382,8 +374,8 @@ export class AuthService {
 
   async passwordRecovery(email: string): Promise<Result<null>> {
     // нашли user по email
-    const userByEmail = await this.usersRepository.findByEmail(email);
-    if (!userByEmail) {
+    const user = await this.usersRepository.findByEmail(email);
+    if (!user) {
       return {
         status: ResultStatus.NoContent,
         errorMessage: 'No Content',
@@ -394,20 +386,18 @@ export class AuthService {
 
     // создали recoveryCode
     const recoveryCode = randomUUID()
-
     // создали expirationDate
     const expirationDate = add(new Date(), { hours: 1, minutes: 3 })
 
     // сохранили это в БД
-    await this.usersRepository.updatePasswordRecoveryCode(
-      userByEmail._id.toString(),
-      recoveryCode,
-      expirationDate
-    )
+    user.passwordRecovery.recoveryCode = recoveryCode;
+    user.passwordRecovery.expirationDate = expirationDate;
+
+    await this.usersRepository.save(user)
 
     // отправили письмо со ссылкой
     this.nodemailerService.sendEmail(
-        userByEmail.email,
+        user.email,
 'Password recovery',
         this.emailTemplateManager.getPasswordRecoveryTemplate(recoveryCode)
     ).catch(error => console.log('error in send email', error));
@@ -448,7 +438,11 @@ export class AuthService {
     const newPasswordHash = await this.argon2Service.generateHash(newPassword);
 
     // сохранили новый passwordHash и зачистили recoveryCode
-    await this.usersRepository.updatePasswordHashAndClearRecoveryCode({userId: user._id.toString(), newPasswordHash})
+    user.passwordHash = newPasswordHash;
+    user.passwordRecovery.recoveryCode = null
+    user.passwordRecovery.expirationDate = null
+
+    await this.usersRepository.save(user)
 
     // вернули 204
     return {
