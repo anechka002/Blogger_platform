@@ -60,7 +60,7 @@ export class DeviceService {
     }
 
     // Удаляем session, принадлежит текущему пользователю.
-    await session.deleteOne()
+    await this.devicesSessionsRepository.delete(session)
 
     return {
       status: ResultStatus.Success,

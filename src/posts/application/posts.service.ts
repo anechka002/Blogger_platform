@@ -58,7 +58,7 @@ export class PostsService {
     foundPost.blogId = dto.blogId
     foundPost.blogName = foundBlog.name
 
-    await foundPost.save()
+    await this.postsRepository.update(foundPost)
 
     return true
   }
@@ -71,7 +71,7 @@ export class PostsService {
       throw new RepositoryNotFoundError('Post not found')
     }
 
-    await foundPost.deleteOne()
+    await this.postsRepository.delete(foundPost)
 
     return true
   }

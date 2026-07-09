@@ -12,6 +12,17 @@ export class DevicesSessionsRepository {
     await session.save()
   }
 
+  // Сохраняет изменения в уже существующей device session.
+  // Например, после refresh-token мы меняем у session новые iat и exp, а затем вызываем save(), чтобы записать эти изменения в MongoDB.
+  async save(session: DeviceDocument): Promise<void> {
+    await session.save()
+  }
+
+  // Удаляем session, которая уже найдена и проверена на принадлежность пользователю.
+  async delete(session: DeviceDocument): Promise<void> {
+    await session.deleteOne()
+  }
+
   // Ищет активную session по deviceId и iat.
   // Используется в refreshTokenGuardMiddleware, чтобы проверить, что refreshToken принадлежит существующей и не протухшей session.
   async findBy({device_id, iat}:{device_id: string, iat: Date}): Promise<DeviceDocument | null> {
@@ -28,33 +39,27 @@ export class DevicesSessionsRepository {
       })
   }
 
-  // Обновляет текущую device session при refresh-token.
-  // Находит старую session по userId + deviceId + oldIat и заменяет iat/exp на новые значения из нового refreshToken.
-  async updateSessionByDeviceIdAndIat({deviceId, oldIat, userId, newExp, newIat}: {deviceId: string, userId: string, oldIat: Date, newExp: Date, newIat: Date}): Promise<boolean> {
-    const result = await DeviceModel.updateOne(
-        // Ищем старую session
-        {user_id: userId, device_id: deviceId, iat: oldIat},
-        // Обновляем её новыми датами из нового refreshToken
-        {$set: {
-                  iat: newIat,
-                  exp: newExp,
-          }}
-      )
-
-    // нашли session
-    return result.matchedCount === 1
+  // Ищет активную device session по userId, deviceId и старому iat из refreshToken.
+  // Нужен для refresh-token flow: проверяем, что session существует, принадлежит текущему пользователю и соответствует именно тому refreshToken, с которым пришёл запрос.
+  async findByDeviceIdAndIat({deviceId, oldIat, userId}:{deviceId: string, userId: string, oldIat: Date,}): Promise<DeviceDocument | null> {
+    return DeviceModel.findOne({
+      device_id: deviceId,
+      user_id: userId,
+      iat: oldIat,
+      // exp должен быть больше текущей даты
+      // То есть session ещё не должна быть протухшей
+      // Покажи только те сессии, у которых срок жизни больше new Date()
+      exp: {$gt: new Date()}
+    })
   }
 
   // Удаляет текущую device session при logout.
   // Ищет session по userId + deviceId + oldIat, чтобы завершить именно тот refreshToken, с которым пришёл logout.
   async deleteSession({deviceId, userId, oldIat}:{deviceId: string, userId: string, oldIat: Date}): Promise<boolean> {
     const result = await DeviceModel.deleteOne({
-          // Удаляем session только этого пользователя
-          device_id: deviceId,
-          // Только с этого устройства/браузера
-          iat: oldIat,
-          // Только конкретную версию refreshToken/session
-          user_id: userId
+          device_id: deviceId, // session этого пользователя
+          iat: oldIat, // session этого устройства/браузера
+          user_id: userId  // конкретная версия refreshToken
       })
 
     // true, если Mongo реально удалила одну запись

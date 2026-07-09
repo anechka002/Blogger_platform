@@ -12,4 +12,11 @@ export class CommentsRepository {
     return CommentModel.findById(id)
   }
 
+  async saveComment(comment: CommentDocument): Promise<void>{
+    await comment.save();
+  }
+
+  async deleteComment(comment: CommentDocument): Promise<void>{
+    await comment.deleteOne()
+  }
 }

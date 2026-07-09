@@ -317,19 +317,24 @@ export class AuthService {
     const newIat = new Date(payload.iat * 1000)
     const newExp = new Date(payload.exp * 1000)
 
-    // Обновляем старую device session в БД:
-    // найти старую session по: userId + deviceId + oldIat и заменить в ней: iat → newIat и exp → newExp
-    const isSessionsUpdate = await this.devicesSessionsRepository.updateSessionByDeviceIdAndIat({userId: user._id.toString(), deviceId, oldIat, newIat, newExp})
+    // найти старую session по: userId + deviceId + oldIat
+    const session = await this.devicesSessionsRepository.findByDeviceIdAndIat({userId: user._id.toString(), deviceId, oldIat})
 
-    // Если session не обновилась, значит старая session не найдена или уже неактуальна
-    if(!isSessionsUpdate) {
+    // Если session нет, значит старая session не найдена или уже неактуальна
+    if (!session) {
       return {
         status: ResultStatus.Unauthorized,
         data: null,
-        errorMessage: "Session was not updated",
+        errorMessage: 'Session not found',
         extensions: [],
       }
     }
+
+    // Обновляем старую device session в БД
+    session.iat = newIat
+    session.exp = newExp
+
+    await this.devicesSessionsRepository.save(session)
 
     // Если всё хорошо: session обновлена, новые токены можно вернуть клиенту
     return {

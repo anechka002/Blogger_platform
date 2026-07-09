@@ -56,7 +56,7 @@ export class BlogsService {
     blog.description = dto.description;
     blog.websiteUrl = dto.websiteUrl;
 
-    await blog.save()
+    await this.blogsRepository.save(blog);
 
     return true
   }
@@ -64,8 +64,9 @@ export class BlogsService {
   // Удалить блог
   async delete(id: string): Promise<boolean> {
     const blog = await this.blogsRepository.findByIdOrFail(id);
-    await blog.deleteOne()
+
+    await this.blogsRepository.deleteBlog(blog)
+
     return true
   }
-
 }

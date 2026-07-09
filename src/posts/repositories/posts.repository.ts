@@ -18,4 +18,13 @@ export class PostsRepository {
     return post._id.toString()
   }
 
+  // Обновить пост
+  async update(post: PostDocument): Promise<void> {
+    await post.save()
+  }
+
+  // Удалить пост
+  async delete(post: PostDocument): Promise<void> {
+    await post.deleteOne()
+  }
 }

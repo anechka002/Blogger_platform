@@ -6,7 +6,7 @@ type CommentModel = Model<ICommentDB>
 export type CommentDocument = HydratedDocument<ICommentDB>
 
 const commentSchema = new mongoose.Schema<ICommentDB>({
-  content: {type: String, required: true, minlength: 20, maxlength: 300},
+  content: {type: String, required: true, minlength: 1, maxlength: 300},
   postId: {type: String, required: true},
   createdAt: {type: Date, required: true},
   commentatorInfo: {

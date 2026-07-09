@@ -65,6 +65,7 @@ export class CommentsService {
     )
 
     const commentId = await this.commentsRepository.save(newComment);
+
     return {
       status: ResultStatus.Success,
       extensions: [],
@@ -94,7 +95,7 @@ export class CommentsService {
 
     comment.content = dto.content;
 
-    await comment.save()
+    await this.commentsRepository.saveComment(comment);
 
     return {
       status: ResultStatus.Success,
@@ -123,7 +124,7 @@ export class CommentsService {
       }
     }
 
-    await comment.deleteOne()
+    await this.commentsRepository.deleteComment(comment)
 
     return {
       status: ResultStatus.Success,

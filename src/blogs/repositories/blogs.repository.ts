@@ -36,4 +36,13 @@ export class BlogsRepository {
     await blog.save();
     return blog._id.toString();
   }
+
+  // Сохраняет изменения в уже существующем блоге
+  async save(blog: BlogDocument): Promise<void> {
+    await blog.save()
+  }
+
+  async deleteBlog(blog: BlogDocument): Promise<void> {
+    await blog.deleteOne()
+  }
 }
