@@ -15,12 +15,11 @@ const userSchema = new mongoose.Schema<IUserDB>({
   login: {type: String, required: true, minlength: 1, maxlength: 100},
   email: {type: String, unique: true, required: true, minlength: 5, maxlength: 200},
   passwordHash: {type: String, required: true},
-  createdAt: {type: Date, required: true},
   emailConfirmation: {type: emailConfirmationSchema, required: true},
   passwordRecovery: {
     recoveryCode: { type: String, default: null },
     expirationDate: { type: Date, default: null },
   }
-});
+}, {timestamps: true});
 
 export const UserModel = model<IUserDB, UserModel>('users', userSchema);

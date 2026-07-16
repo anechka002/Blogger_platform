@@ -6,4 +6,6 @@ export interface ICommentDB {
     userLogin: string
   }
   createdAt: Date
+  likesCount: number
+  dislikesCount: number
 }

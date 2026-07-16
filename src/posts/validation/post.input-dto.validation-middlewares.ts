@@ -21,7 +21,7 @@ const contentValidation = body('content')
   .isString()
   .withMessage('Content must be a string')
   .trim()
-  .isLength({ min: 1, max: 1000})
+  .isLength({ min: 1, max: 300})
   .withMessage('Length of content is not correct')
 
 const blogIdValidation = (blogsRepository: BlogsRepository) => body('blogId')
