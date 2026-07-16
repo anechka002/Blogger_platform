@@ -7,9 +7,7 @@ import {
 import {
   RepositoryNotFoundError
 } from "../../core/errors/repositiry-not-found.error";
-import {db} from "../../db/mongo.db";
 import {calculateSkip} from "../../core/utils/calculateSkip";
-import {ObjectId} from "mongodb";
 import {
   BlogPostsQueryInput
 } from "../../blogs/routers/input/blog-posts-query.input";
@@ -17,6 +15,8 @@ import {
   mapToPostListPaginationOutput
 } from "../routers/mappers/map-to-post-list-pagination-output.util";
 import {injectable} from "inversify";
+import {PostModel} from "../domain/post.entity";
+import mongoose from "mongoose";
 
 @injectable()
 export class PostsQueryRepository {
@@ -27,18 +27,14 @@ export class PostsQueryRepository {
     const filter = {blogId};
     const skip = calculateSkip(pageNumber, pageSize);
 
-    const items = await db
-      .getCollections()
-      .postCollection
+    const items = await PostModel
       .find(filter)
       .sort({[sortBy]: sortDirection})
       .skip(skip)
       .limit(pageSize)
-      .toArray();
+      .lean()
 
-    const totalCount = await db
-      .getCollections()
-      .postCollection.countDocuments(filter)
+    const totalCount = await PostModel.countDocuments(filter)
 
     return mapToPostListPaginationOutput({items, totalCount}, queryDto)
   }
@@ -50,18 +46,14 @@ export class PostsQueryRepository {
     const filter = {}
     const skip = calculateSkip(pageNumber, pageSize);
 
-    const items = await db
-      .getCollections()
-      .postCollection
+    const items = await PostModel
       .find(filter)
       .sort({[sortBy]: sortDirection})
       .skip(skip)
       .limit(pageSize)
-      .toArray();
+      .lean()
 
-    const totalCount = await db
-      .getCollections()
-      .postCollection.countDocuments(filter)
+    const totalCount = await PostModel.countDocuments(filter)
 
     return {
       pagesCount: Math.ceil(totalCount / queryDto.pageSize),
@@ -74,12 +66,10 @@ export class PostsQueryRepository {
 
   // Найти пост по ID или завершить с ошибкой
   async findByIdOrFail(id: string): Promise<PostViewDto> {
-    if(!ObjectId.isValid(id)) {
+    if (!mongoose.Types.ObjectId.isValid(id))  {
       throw new RepositoryNotFoundError(`Post with id ${id} not found`)
     }
-    const foundPost = await db
-      .getCollections()
-      .postCollection.findOne({_id: new ObjectId(id)});
+    const foundPost = await PostModel.findById(id);
     if (!foundPost) {
       throw new RepositoryNotFoundError(`Post with id ${id} not found`)
     }
@@ -89,13 +79,11 @@ export class PostsQueryRepository {
 
   // Найти пост по ID
   async findById(postId: string): Promise<PostViewDto | null> {
-    if(!ObjectId.isValid(postId)) {
+    if (!mongoose.Types.ObjectId.isValid(postId))  {
       return null
     }
 
-    const foundPost = await db
-      .getCollections()
-      .postCollection.findOne({_id: new ObjectId(postId)});
+    const foundPost = await PostModel.findById(postId);
 
     return foundPost ? mapToPostViewModel(foundPost) : null
   }

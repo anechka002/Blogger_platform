@@ -8,6 +8,7 @@ import { SETTINGS } from '../../../src/core/settings/settings'
 import { clearDb } from '../../utils/clear-db'
 import { createUser } from '../../utils/users/create-user'
 import {DeviceView} from "../../utils/device-view.type";
+import {DeviceModel} from "../../../src/devices/domain/device.entity";
 
 describe('Refresh token e2e', () => {
   const app = express()
@@ -189,11 +190,9 @@ describe('Refresh token e2e', () => {
     expect(newCookies).toBeDefined()
     expect(newCookies[0]).toContain('refreshToken=')
 
-    const sessions = await db
-      .getCollections()
-      .deviceSessionsCollection
+    const sessions = await DeviceModel
       .find({})
-      .toArray()
+      .lean()
 
     expect(sessions).toHaveLength(1)
   })

@@ -2,13 +2,13 @@ import {CreateUserDto} from "../types/create-user.dto";
 import {
   UsersRepository,
 } from "../repositories/users.repository";
-import {IUserDB} from "../types/user.db.type";
 import {
   RepositoryNotFoundError
 } from "../../core/errors/repositiry-not-found.error";
 import {UniqueFieldError} from "../../core/errors/unique-field.error";
 import {Argon2Service} from "../../auth/adapters/argon.service";
 import {inject, injectable} from "inversify";
+import {UserModel} from "../domain/user.entity";
 
 @injectable()
 export class UsersService {
@@ -25,8 +25,6 @@ export class UsersService {
   async createUser(dto: CreateUserDto): Promise<string> {
     const { login, email, password } = dto;
 
-    const passwordHash = await this.argon2Service.generateHash(password);
-
     const userByLogin = await this.usersRepository.findByLogin(login)
     if (userByLogin) {
       throw new UniqueFieldError('login','login should be unique')
@@ -37,33 +35,35 @@ export class UsersService {
       throw new UniqueFieldError('email','email should be unique')
     }
 
-    const newUser = new IUserDB(
+    const passwordHash = await this.argon2Service.generateHash(password);
+
+    const newUser = new UserModel({
       login,
       email,
       passwordHash,
-      new Date(),
-      {
+      createdAt: new Date(),
+      emailConfirmation: {
         confirmationCode: '',
         expirationDate: new Date(),
         isConfirmed: true,
       },
-      {
+      passwordRecovery: {
         recoveryCode: null,
         expirationDate: null,
       }
-    )
+    })
 
-    return await this.usersRepository.create(newUser);
+    return await this.usersRepository.save(newUser);
   }
 
   async deleteUser(id: string): Promise<boolean> {
-    const userId = await this.usersRepository.findById(id)
+    const deletedUser = await this.usersRepository.delete(id)
 
-    if (!userId) {
+    if (!deletedUser) {
       throw new RepositoryNotFoundError('User not found')
     }
 
-    return await this.usersRepository.delete(id)
+    return true;
   }
 
 }

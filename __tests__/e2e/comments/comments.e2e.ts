@@ -14,6 +14,7 @@ import {createComment} from "../../utils/comments/create-comments";
 import {
   createPostForComments
 } from "../../utils/comments/create-post-for-comments";
+import {LikeStatus} from "../../../src/comments/domain/like-status.enum";
 
 describe('Comments for posts with auth', () => {
   const app = express()
@@ -61,6 +62,11 @@ describe('Comments for posts with auth', () => {
         userLogin: userDto.login,
       },
       createdAt: expect.any(String),
+      likesInfo: {
+        likesCount: 0,
+        dislikesCount: 0,
+        myStatus: LikeStatus.None,
+      }
     })
 
     const foundComment = await request(app)

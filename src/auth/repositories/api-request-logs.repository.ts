@@ -1,27 +1,23 @@
-import {db} from "../../db/mongo.db";
-import {ApiRequestLogDb} from "../types/api-request-log.db.type";
 import {injectable} from "inversify";
+import {
+  ApiRequestLogDocument,
+  ApiRequestLogModel
+} from "../domain/api-request-log.entity";
 
 @injectable()
 export class ApiRequestLogsRepository {
   // Считает количество запросов с одного IP на один URL за период от tenSecondsAgo до текущего момента.
   async countRecentRequests({originalUrl, ip, tenSecondsAgo}:{originalUrl: string, ip: string, tenSecondsAgo: Date}): Promise<number>{
-    const result = await db
-      .getCollections()
-      .apiRequestLogsCollection
-      .countDocuments({
+    return ApiRequestLogModel.countDocuments({
         IP: ip,
         URL: originalUrl,
         date: { $gt: tenSecondsAgo }
       })
-    return result
   }
 
   // Сохраняет информацию о текущем запросе в коллекцию apiRequestLogs.
-  async create(requestLog: ApiRequestLogDb): Promise<boolean> {
-    const result = await db
-      .getCollections()
-      .apiRequestLogsCollection.insertOne(requestLog)
-    return !!result
+  async create(requestLog: ApiRequestLogDocument): Promise<boolean> {
+    await requestLog.save()
+    return true
   }
 }

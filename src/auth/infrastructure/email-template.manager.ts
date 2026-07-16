@@ -2,7 +2,7 @@ import {injectable} from "inversify";
 
 @injectable()
 export class EmailTemplateManager {
-  getRegistrationConfirmationTemplate(code: string): string {
+  getRegistrationConfirmationTemplate(code: string | null ): string {
     return`<h1>Thank you for registration</h1>
        <p>To finish registration, please confirm your email:</p>
        <p>Your confirmation code:</p>

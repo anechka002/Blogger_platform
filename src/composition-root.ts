@@ -56,6 +56,9 @@ import {
   postInputDtoValidation
 } from "./posts/validation/post.input-dto.validation-middlewares";
 import {EmailTemplateManager} from "./auth/infrastructure/email-template.manager";
+import {
+  CommentLikesRepository
+} from "./comments/repositories/comment-likes.repository";
 
 export const container: Container = new Container();
 
@@ -71,6 +74,7 @@ container.bind(PostsQueryRepository).to(PostsQueryRepository);
 container.bind(PostsRepository).to(PostsRepository);
 container.bind(CommentsQueryRepository).to(CommentsQueryRepository);
 container.bind(CommentsRepository).to(CommentsRepository);
+container.bind(CommentLikesRepository).to(CommentLikesRepository);
 
 container.bind(BcryptService).to(BcryptService);
 container.bind(Argon2Service).to(Argon2Service);

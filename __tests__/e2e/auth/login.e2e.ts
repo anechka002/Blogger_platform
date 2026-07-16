@@ -11,6 +11,7 @@ import {container} from "../../../src/composition-root";
 import {
   ApiRequestLogsRepository
 } from "../../../src/auth/repositories/api-request-logs.repository";
+import {DeviceModel} from "../../../src/devices/domain/device.entity";
 
 
 describe('Login e2e', () => {
@@ -69,11 +70,9 @@ describe('Login e2e', () => {
       })
     }
 
-    const sessions = await db
-      .getCollections()
-      .deviceSessionsCollection
+    const sessions = await DeviceModel
       .find({})
-      .toArray()
+      .lean()
 
     expect(sessions).toHaveLength(4)
 

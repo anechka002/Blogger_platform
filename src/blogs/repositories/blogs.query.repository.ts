@@ -1,5 +1,3 @@
-import {ObjectId} from "mongodb";
-import {db} from "../../db/mongo.db";
 import {BlogQueryInput} from "../routers/input/blog-query.input";
 import {calculateSkip} from "../../core/utils/calculateSkip";
 import {PaginationOutput} from "../../core/types/pagination.output";
@@ -11,6 +9,8 @@ import {
   RepositoryNotFoundError
 } from "../../core/errors/repositiry-not-found.error";
 import {injectable} from "inversify";
+import {BlogModel} from "../domain/blog.entity";
+import mongoose from "mongoose";
 
 @injectable()
 export class BlogsQueryRepository {
@@ -21,18 +21,14 @@ export class BlogsQueryRepository {
     const filter = searchNameTerm ? {name: {$regex: searchNameTerm, $options: "i"}}: {};
     const skip = calculateSkip(pageNumber, pageSize);
 
-    const items = await db
-      .getCollections()
-      .blogCollection
+    const items = await BlogModel
       .find(filter)
       .sort({[sortBy]: sortDirection})
       .skip(skip)
       .limit(pageSize)
-      .toArray();
+      .lean()
 
-    const totalCount = await db
-      .getCollections()
-      .blogCollection.countDocuments(filter)
+    const totalCount = await BlogModel.countDocuments(filter)
 
     return {
       pagesCount: Math.ceil(totalCount / queryDto.pageSize),
@@ -45,26 +41,22 @@ export class BlogsQueryRepository {
 
   // Найти блог по ID
   async findById(id: string): Promise<BlogViewDto | null> {
-    if (!ObjectId.isValid(id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return null;
     }
 
-    const foundBlog = await db
-      .getCollections()
-      .blogCollection.findOne({_id: new ObjectId(id)});
+    const foundBlog = await BlogModel.findById(id).lean()
 
     return foundBlog ? mapToBlogViewModel(foundBlog) : null;
   }
 
   // Найти блог по ID или завершить с ошибкой
   async findByIdOrFail(id: string): Promise<BlogViewDto> {
-    if (!ObjectId.isValid(id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)){
       throw new RepositoryNotFoundError('No blog found with id ' + id);
     }
 
-    const foundBlog = await db
-      .getCollections()
-      .blogCollection.findOne({_id: new ObjectId(id)});
+    const foundBlog = await BlogModel.findById(id).lean();
 
     if (!foundBlog) {
       throw new RepositoryNotFoundError('No blog found with id ' + id);

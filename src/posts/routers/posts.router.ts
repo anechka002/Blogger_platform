@@ -26,10 +26,15 @@ import {PostsController} from "./controller/posts-controller";
 import {
   CommentsController
 } from "../../comments/routers/controller/comments-controller";
+import {
+  optionalAccessTokenMiddleware
+} from "../../comments/middlewares/optional-access.token.guard-middleware";
+import {JwtService} from "../../auth/adapters/jwt.service";
 
 
 const postsController = container.get(PostsController)
 const commentsController = container.get(CommentsController)
+const jwtService = container.get(JwtService)
 
 export const postsRouter = Router({});
 
@@ -48,4 +53,4 @@ postsRouter
 
   .post('/:postId/comments', accessToken, idValidationMiddleware('postId'), commentInputDtoValidation, inputValidationResultMiddleware, commentsController.createComment.bind(commentsController))
 
-  .get('/:postId/comments', idValidationMiddleware('postId'), paginationAndSortingValidation(CommentSortField), inputValidationResultMiddleware, commentsController.getCommentList.bind(commentsController))
+  .get('/:postId/comments', optionalAccessTokenMiddleware(jwtService), idValidationMiddleware('postId'), paginationAndSortingValidation(CommentSortField), inputValidationResultMiddleware, commentsController.getCommentList.bind(commentsController))

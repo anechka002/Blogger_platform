@@ -1,66 +1,30 @@
-import {Post} from "../types/post";
-import {UpdatePostDto} from "../dto/updatePostDto";
-import {ObjectId, WithId} from "mongodb";
-import {db} from "../../db/mongo.db";
 import {injectable} from "inversify";
+import mongoose from "mongoose";
+import {PostDocument, PostModel} from "../domain/post.entity";
 
 @injectable()
 export class PostsRepository {
   // Найти пост по ID
-  async findById(id: string): Promise<WithId<Post> | null> {
-    if (!ObjectId.isValid(id)) {
+  async findById(id: string): Promise<PostDocument | null> {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return null
     }
-    return await db
-      .getCollections()
-      .postCollection.findOne({_id: new ObjectId(id)});
+    return PostModel.findById(id)
   }
 
   // Создать новый пост
-  async create(post: Post): Promise<string> {
-    const insertResult = await db
-      .getCollections()
-      .postCollection.insertOne(post);
-
-    return insertResult.insertedId.toString();
+  async save(post: PostDocument): Promise<string> {
+    await post.save()
+    return post._id.toString()
   }
 
-  // Обновить данные поста
-  async update(id: string, dto: UpdatePostDto, blogName: string): Promise<boolean> {
-    if (!ObjectId.isValid(id)) {
-      return false;
-    }
-
-    const isUpdated = await db
-      .getCollections()
-      .postCollection.updateOne(
-      {
-        _id: new ObjectId(id)
-      },
-      {
-        $set: {
-          title: dto.title,
-          content: dto.content,
-          shortDescription: dto.shortDescription,
-          blogId: dto.blogId,
-          blogName: blogName,
-        }
-      }
-    );
-
-    return isUpdated.matchedCount === 1
+  // Обновить пост
+  async update(post: PostDocument): Promise<void> {
+    await post.save()
   }
 
   // Удалить пост
-  async delete(id: string): Promise<boolean> {
-    if (!ObjectId.isValid(id)) {
-      return false;
-    }
-
-    const isDeleted = await db
-      .getCollections()
-      .postCollection.deleteOne({_id: new ObjectId(id)});
-
-    return isDeleted.deletedCount === 1
+  async delete(post: PostDocument): Promise<void> {
+    await post.deleteOne()
   }
 }
