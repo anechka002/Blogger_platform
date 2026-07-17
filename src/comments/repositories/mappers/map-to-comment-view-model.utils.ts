@@ -1,6 +1,6 @@
 import {ICommentView} from "../../types/comment.view.type";
 import {CommentDocument} from "../../domain/comment.entity";
-import {LikeStatus} from "../../domain/like-status.enum";
+import {LikeStatus} from "../../../core/enum/like-status.enum";
 
 export const mapToCommentViewModel = ({comment, myStatus}:{comment: CommentDocument, myStatus: LikeStatus }): ICommentView => {
   return {

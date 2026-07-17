@@ -27,7 +27,7 @@ import {
 } from "../../application/comments.service";
 import {URIParamsCommentIdDto} from "../../types/uri-params-comment-id.dto";
 import {inject, injectable} from "inversify";
-import {LikeStatusInputDto} from "../../types/like-status-input.dto";
+import {LikeStatusInputDto} from "../../../core/types/like-status-input.dto";
 
 @injectable()
 export class CommentsController {

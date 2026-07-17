@@ -11,6 +11,8 @@ const postSchema = new mongoose.Schema<Post>({
   content: { type: String, required: true, minlength: 1, maxlength: 1000, },
   blogName: { type: String, required: true },
   blogId: { type: String, required: true },
+  likesCount: {type: Number, required: true, default: 0},
+  dislikesCount: {type: Number, required: true, default: 0},
 }, { timestamps: true });
 
 export const PostModel = model<Post, PostModel>('posts', postSchema);

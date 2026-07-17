@@ -20,8 +20,13 @@ import {
 import {searchNameTermValidation} from "../validation/blogs-query.validation";
 import {container} from "../../composition-root";
 import {BlogsController} from "./controller/blogs-controller";
+import {
+  optionalAccessTokenMiddleware
+} from "../../comments/middlewares/optional-access.token.guard-middleware";
+import {JwtService} from "../../auth/adapters/jwt.service";
 
 const blogsController = container.get(BlogsController)
+const jwtService = container.get(JwtService)
 
 export const blogsRouter = Router({});
 
@@ -38,6 +43,6 @@ blogsRouter
 
   .delete('/:id', baseAuthGuardMiddleware, idValidationMiddleware(), inputValidationResultMiddleware, blogsController.deleteBlog.bind(blogsController))
 
-  .get('/:blogId/posts', idValidationMiddleware('blogId'), paginationAndSortingValidation(PostSortField), inputValidationResultMiddleware, blogsController.getBlogPosts.bind(blogsController))
+  .get('/:blogId/posts',optionalAccessTokenMiddleware(jwtService), idValidationMiddleware('blogId'), paginationAndSortingValidation(PostSortField), inputValidationResultMiddleware, blogsController.getBlogPosts.bind(blogsController))
 
   .post('/:blogId/posts', baseAuthGuardMiddleware, idValidationMiddleware('blogId'), blogPostInputDtoValidation, inputValidationResultMiddleware, blogsController.createPostForBlog.bind(blogsController))

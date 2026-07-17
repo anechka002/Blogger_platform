@@ -14,7 +14,7 @@ import {
 import {inject, injectable} from "inversify";
 import {CommentModel} from "../domain/comment.entity";
 import {CommentLikesRepository} from "../repositories/comment-likes.repository";
-import {LikeStatus} from "../domain/like-status.enum";
+import {LikeStatus} from "../../core/enum/like-status.enum";
 import {CommentLikeModel} from "../domain/comment-like.entity";
 
 @injectable()

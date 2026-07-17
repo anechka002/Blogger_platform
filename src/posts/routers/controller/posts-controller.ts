@@ -12,11 +12,21 @@ import {
   RequestWithBody,
   RequestWithParams, RequestWithParamsAndBody
 } from "../../../core/types/request-types";
-import {URIParamsPostIdDto} from "../../dto/URIParamsPostIdDto";
 import {CreatePostDto} from "../../dto/createPostDto";
 import {PostsService} from "../../application/posts.service";
 import {UpdatePostDto} from "../../dto/updatePostDto";
 import {inject, injectable} from "inversify";
+import {
+  LikeStatusInputDto
+} from "../../../core/types/like-status-input.dto";
+import {ResultStatus} from "../../../core/result/resultCode";
+import {
+  resultCodeToHttpException
+} from "../../../core/result/resultCodeToHttpException";
+import {URIParamsPostIdDto} from "../../dto/URIParamsPostIdDto";
+import {
+  UriParamsPostIdDto
+} from "../../../comments/types/uri-params-post-id.dto";
 
 @injectable()
 export class PostsController{
@@ -31,12 +41,14 @@ export class PostsController{
   }
   async getPostList(req: Request, res: Response<PaginationOutput<PostViewDto>>) {
     try {
+      const userId = req.user?.userId
+
       const queryInput = matchedData<PostQueryInput>(req, {
         locations: ["query"],
         includeOptionals: true,
       });
 
-      const posts = await this.postsQueryRepository.findMany(queryInput)
+      const posts = await this.postsQueryRepository.findMany(queryInput, userId)
 
       res.status(HttpStatus.Ok_200).send(posts);
     } catch (error: unknown) {
@@ -46,7 +58,8 @@ export class PostsController{
 
   async getPost(req: RequestWithParams<URIParamsPostIdDto>, res: Response<PostViewDto>) {
     try {
-      const post = await this.postsQueryRepository.findByIdOrFail(req.params.id)
+      const userId = req?.user?.userId
+      const post = await this.postsQueryRepository.findByIdOrFail(req.params.id, userId)
 
       res.status(HttpStatus.Ok_200).send(post);
     } catch (error: unknown) {
@@ -84,5 +97,23 @@ export class PostsController{
     } catch (error: unknown) {
       errorsHandler(error, res)
     }
+  }
+
+  async createLikeStatus(req: RequestWithParamsAndBody<UriParamsPostIdDto, LikeStatusInputDto>, res: Response) {
+    if (!req.user) {
+      return res.sendStatus(HttpStatus.Unauthorized_401)
+    }
+
+    const result = await this.postsService.createLikeStatus({
+      postId: req.params.postId,
+      userId: req.user.userId,
+      likeStatus: req.body.likeStatus,
+    })
+
+    if(result.status !== ResultStatus.Success) {
+      return res.sendStatus(resultCodeToHttpException(result.status))
+    }
+
+    return res.sendStatus(HttpStatus.NoContent_204)
   }
 }

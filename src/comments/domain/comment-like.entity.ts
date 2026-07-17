@@ -1,6 +1,6 @@
 import mongoose, {HydratedDocument, Model, model} from "mongoose";
 import {CommentLikeDB} from "../types/comment-like.db.type";
-import {LikeStatus} from "./like-status.enum";
+import {LikeStatus} from "../../core/enum/like-status.enum";
 
 type CommentLikeModel = Model<CommentLikeDB>
 

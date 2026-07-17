@@ -6,6 +6,8 @@ import {ApiRequestLogModel} from "../../auth/domain/api-request-log.entity";
 import {BlogModel} from "../../blogs/domain/blog.entity";
 import {PostModel} from "../../posts/domain/post.entity";
 import {CommentModel} from "../../comments/domain/comment.entity";
+import {CommentLikeModel} from "../../comments/domain/comment-like.entity";
+import {PostLikeModel} from "../../posts/domain/post-like.entity";
 
 export const testingRouter = Router({});
 
@@ -18,6 +20,8 @@ testingRouter.delete('/all-data', async (req: Request, res: Response) => {
       BlogModel.deleteMany({}),
       PostModel.deleteMany({}),
       CommentModel.deleteMany({}),
+      CommentLikeModel.deleteMany({}),
+      PostLikeModel.deleteMany({}),
     ])
     res.sendStatus(HttpStatus.NoContent_204);
   } catch (error) {

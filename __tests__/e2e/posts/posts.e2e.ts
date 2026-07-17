@@ -51,6 +51,12 @@ describe('posts e2e', () => {
       blogId: createdBlog.id,
       blogName: createdBlog.name,
       createdAt: expect.any(String),
+      extendedLikesInfo: {
+        dislikesCount: 0,
+        likesCount: 0,
+        myStatus: 'None',
+        newestLikes: []
+      }
     });
 
     const foundPost = await getPostById(app, createdPost.id);
@@ -96,6 +102,12 @@ describe('posts e2e', () => {
       blogId: createdBlog.id,
       blogName: createdBlog.name,
       createdAt: createdPost.createdAt,
+      extendedLikesInfo: {
+        dislikesCount: 0,
+        likesCount: 0,
+        myStatus: 'None',
+        newestLikes: []
+      }
     });
   });
 

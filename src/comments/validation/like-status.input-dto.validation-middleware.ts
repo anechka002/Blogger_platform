@@ -1,5 +1,5 @@
 import { body } from 'express-validator';
-import {LikeStatus} from "../domain/like-status.enum";
+import {LikeStatus} from "../../core/enum/like-status.enum";
 
 const likesStatusValidation = body('likeStatus')
   .exists()

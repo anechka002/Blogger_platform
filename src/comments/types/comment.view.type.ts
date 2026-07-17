@@ -1,4 +1,4 @@
-import {LikeStatus} from "../domain/like-status.enum";
+import {LikeInfo} from "../../core/types/like-info.type";
 
 export type ICommentView = {
   id: string
@@ -11,10 +11,4 @@ export type ICommentView = {
 type Info = {
   userId: string
   userLogin: string
-}
-
-export type LikeInfo = {
-  likesCount: number,
-  dislikesCount: number,
-  myStatus: LikeStatus
 }

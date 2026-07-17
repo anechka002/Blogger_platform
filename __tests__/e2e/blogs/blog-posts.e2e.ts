@@ -5,7 +5,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { ObjectId } from 'mongodb';
 import { setupApp } from '../../../src/setup-app';
-import { BLOGS_PATH } from '../../../src/core/paths/paths';
+import {BLOGS_PATH, POSTS_PATH} from '../../../src/core/paths/paths';
 import { HttpStatus } from '../../../src/core/types/http-statuses';
 import { clearDb } from '../../utils/clear-db';
 import { createBlog } from '../../utils/blogs/create-blog';
@@ -15,6 +15,10 @@ import { createPostForBlog } from '../../utils/blogs/create-post-for-blog';
 import { getBlogPosts } from '../../utils/blogs/get-blog-posts';
 import { PostSortField } from '../../../src/posts/routers/input/post-sort-field';
 import { SortDirectionEnum } from '../../../src/core/types/sort-direction';
+import {LikeStatus} from "../../../src/core/enum/like-status.enum";
+import {PostViewDto} from "../../../src/posts/dto/postViewDto";
+import {createPost} from "../../utils/posts/create-post";
+import {loginUser} from "../../utils/users/login-user";
 
 dotenv.config();
 
@@ -53,6 +57,12 @@ describe('blog posts e2e', () => {
       blogId: createdBlog.id,
       blogName: createdBlog.name,
       createdAt: expect.any(String),
+      extendedLikesInfo: {
+        dislikesCount: 0,
+        likesCount: 0,
+        myStatus: 'None',
+        newestLikes: []
+      }
     });
   });
 
@@ -193,4 +203,51 @@ describe('blog posts e2e', () => {
       'Alpha post',
     ]);
   });
+
+  // GET /blogs/:blogId/posts
+  it('GET -> "/blogs/:blogId/posts": should return extended posts', async () => {
+    const accessToken = await loginUser(app, {
+      login: 'Natalia',
+      email: 'natalia@gmail.com',
+      password: 'qwerty123',
+    })
+
+    const blog = await createBlog(app)
+    const post = await createPost(app, blog.id)
+
+    await request(app)
+      .put(`${POSTS_PATH}/${post.id}/like-status`)
+      .set('Authorization', accessToken)
+      .send({
+        likeStatus: LikeStatus.Like,
+      })
+      .expect(HttpStatus.NoContent_204)
+
+    const response = await request(app)
+      .get(`${BLOGS_PATH}/${blog.id}/posts`)
+      .set('Authorization', accessToken)
+      .expect(HttpStatus.Ok_200)
+
+    const foundPost = response.body.items.find(
+      (item: PostViewDto) => item.id === post.id,
+    )
+
+    expect(foundPost).toBeDefined()
+
+    expect(foundPost.extendedLikesInfo).toMatchObject({
+      likesCount: 1,
+      dislikesCount: 0,
+      myStatus: LikeStatus.Like,
+    })
+
+    expect(
+      foundPost.extendedLikesInfo.newestLikes,
+    ).toHaveLength(1)
+
+    expect(
+      foundPost.extendedLikesInfo.newestLikes[0],
+    ).toMatchObject({
+      login: 'Natalia',
+    })
+  })
 });
