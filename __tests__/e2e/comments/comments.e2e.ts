@@ -14,11 +14,15 @@ import {createComment} from "../../utils/comments/create-comments";
 import {
   createPostForComments
 } from "../../utils/comments/create-post-for-comments";
-import {LikeStatus} from "../../../src/comments/domain/like-status.enum";
+import {LikeStatus} from "../../../src/core/enum/like-status.enum";
+import {container} from "../../../src/composition-root";
+import {NodemailerService} from "../../../src/auth/adapters/nodemailer.service";
 
 describe('Comments for posts with auth', () => {
   const app = express()
   setupApp(app)
+
+  const nodemailerService = container.get(NodemailerService)
 
   beforeAll(async () => {
     await db.run(SETTINGS.MONGO_URL)
@@ -30,6 +34,14 @@ describe('Comments for posts with auth', () => {
 
   beforeEach(async () => {
     await clearDb(app)
+
+    jest
+      .spyOn(nodemailerService, 'sendEmail')
+      .mockResolvedValue(true)
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks()
   })
 
   const userDto = {

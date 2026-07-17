@@ -104,6 +104,7 @@ export class BlogsController {
   async getBlogPosts(req: RequestWithParams<URIParamsBlogIdPostsDto>, res: Response<PaginationOutput<PostViewDto>>) {
     try {
       const blogId = req.params.blogId;
+      const userId = req.user?.userId
 
       const queryInput = matchedData<BlogPostsQueryInput>(req, {
         locations: ["query"],
@@ -114,7 +115,7 @@ export class BlogsController {
 
       await this.blogsQueryRepository.findByIdOrFail(blogId)
 
-      const result = await this.postsQueryRepository.findManyByBlogId(blogId, queryInput)
+      const result = await this.postsQueryRepository.findManyByBlogId(blogId, queryInput, userId)
 
       res.status(HttpStatus.Ok_200).send(result)
     } catch(error: unknown) {

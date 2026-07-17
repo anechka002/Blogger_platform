@@ -30,6 +30,9 @@ import {
   optionalAccessTokenMiddleware
 } from "../../comments/middlewares/optional-access.token.guard-middleware";
 import {JwtService} from "../../auth/adapters/jwt.service";
+import {
+  likesStatusInputDtoValidation
+} from "../../comments/validation/like-status.input-dto.validation-middleware";
 
 
 const postsController = container.get(PostsController)
@@ -41,11 +44,11 @@ export const postsRouter = Router({});
 // blogsRouter.use(superAdminGuardMiddleware); // для всех роутеров
 
 postsRouter
-  .get('/', paginationAndSortingValidation(PostSortField), inputValidationResultMiddleware, postsController.getPostList.bind(postsController))
+  .get('/', optionalAccessTokenMiddleware(jwtService), paginationAndSortingValidation(PostSortField), inputValidationResultMiddleware, postsController.getPostList.bind(postsController))
 
   .post('/', baseAuthGuardMiddleware, postInputValidation, inputValidationResultMiddleware, postsController.createPost.bind(postsController))
 
-  .get('/:id', idValidationMiddleware(), inputValidationResultMiddleware, postsController.getPost.bind(postsController))
+  .get('/:id', optionalAccessTokenMiddleware(jwtService), idValidationMiddleware(), inputValidationResultMiddleware, postsController.getPost.bind(postsController))
 
   .put('/:id', baseAuthGuardMiddleware, idValidationMiddleware(), postInputValidation, inputValidationResultMiddleware, postsController.updatePost.bind(postsController))
 
@@ -54,3 +57,5 @@ postsRouter
   .post('/:postId/comments', accessToken, idValidationMiddleware('postId'), commentInputDtoValidation, inputValidationResultMiddleware, commentsController.createComment.bind(commentsController))
 
   .get('/:postId/comments', optionalAccessTokenMiddleware(jwtService), idValidationMiddleware('postId'), paginationAndSortingValidation(CommentSortField), inputValidationResultMiddleware, commentsController.getCommentList.bind(commentsController))
+
+  .put('/:postId/like-status', accessToken, idValidationMiddleware('postId'), likesStatusInputDtoValidation, inputValidationResultMiddleware, postsController.createLikeStatus.bind(postsController))

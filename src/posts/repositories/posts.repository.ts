@@ -19,7 +19,7 @@ export class PostsRepository {
   }
 
   // Обновить пост
-  async update(post: PostDocument): Promise<void> {
+  async savePost(post: PostDocument): Promise<void> {
     await post.save()
   }
 

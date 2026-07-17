@@ -12,7 +12,7 @@ import {injectable} from "inversify";
 import mongoose from "mongoose";
 import {CommentModel} from "../domain/comment.entity";
 import {CommentLikeModel} from "../domain/comment-like.entity";
-import {LikeStatus} from "../domain/like-status.enum";
+import {LikeStatus} from "../../core/enum/like-status.enum";
 
 @injectable()
 export class CommentsQueryRepository {
@@ -72,51 +72,37 @@ export class CommentsQueryRepository {
     const filter = { postId }
     const skip = calculateSkip(pageNumber, pageSize);
 
-    const items = await CommentModel
+    // не все комментарии из базы, а только комментарии:
+    // 1-принадлежащие этому посту, 2-попавшие на текущую страницу пагинации.
+    const comments = await CommentModel
       .find(filter)
       .skip(skip)
       .sort({[sortBy]: sortDirection})
       .limit(pageSize)
 
+    // Сколько всего комментариев принадлежит этому посту
     const totalCount = await CommentModel.countDocuments(filter)
 
-    const mappedItems = await Promise.all(
-      items.map(async (comment) => {
-        // Если пользователь авторизован, ищем его реакцию на текущий комментарий.
-        const currentUserReaction = userId ? await CommentLikeModel.findOne({comment_id: comment._id.toString(), user_id: userId}) : null;
+    // собираем ID комментариев текущей страницы
+    const commentsIds = comments.map(comment => comment._id.toString());
 
-        // Если реакция найдена — берём Like или Dislike.
-        // Если не найдена или пользователь не авторизован — None.
-        const myStatus = currentUserReaction?.status ?? LikeStatus.None
-
-        // likesCount и dislikesCount маппер возьмёт прямо из документа comment.
-        return mapToCommentViewModel({
-          comment,
-          myStatus,
-        })
-      })
-    )
+    // реакции авторизованного пользователя на эти комментарии
+    const reactionsForComments = userId ? await CommentLikeModel.find({
+      comment_id: { $in: commentsIds }, user_id: userId
+    }) : []
 
     return {
       pagesCount: Math.ceil(totalCount / queryInput.pageSize),
       pageSize: queryInput.pageSize,
       page: queryInput.pageNumber,
       totalCount: totalCount,
-      items: mappedItems
-      // items: items.map(() => ({
-      //   id: '6a50a0e86975b345ebabf3a9',
-      //   content: 'bebebe',
-      //   createdAt: new Date().toISOString(),
-      //   commentatorInfo: {
-      //     userId: '6a4f6d0392eb058b6cf5200b',
-      //     userLogin: 'Anna',
-      //   },
-      //   likesInfo: {
-      //     likesCount: 1,
-      //     dislikesCount: 2,
-      //     myStatus: LikeStatus.None,
-      //   },
-      // })),
+
+      items: comments.map((comment) => {
+        // одна конкретная реакция пользователя на текущий comment
+        const currentUserReaction = reactionsForComments.find(
+          (reaction) => reaction.comment_id === comment._id.toString())
+        return mapToCommentViewModel({comment, myStatus: currentUserReaction?.status ?? LikeStatus.None})
+      })
     }
   }
 }

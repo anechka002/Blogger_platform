@@ -5,4 +5,6 @@ export type Post = {
   blogId: string
   blogName: string
   createdAt: Date
+  likesCount: number
+  dislikesCount: number
 }
