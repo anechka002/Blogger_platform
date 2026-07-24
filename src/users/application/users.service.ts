@@ -37,33 +37,17 @@ export class UsersService {
 
     const passwordHash = await this.argon2Service.generateHash(password);
 
-    const newUser = new UserModel({
-      login,
-      email,
-      passwordHash,
-      createdAt: new Date(),
-      emailConfirmation: {
-        confirmationCode: '',
-        expirationDate: new Date(),
-        isConfirmed: true,
-      },
-      passwordRecovery: {
-        recoveryCode: null,
-        expirationDate: null,
-      }
-    })
+    const user = UserModel.createByAdmin({login, email, passwordHash})
 
-    return await this.usersRepository.save(newUser);
+    return await this.usersRepository.save(user);
   }
 
-  async deleteUser(id: string): Promise<boolean> {
+  async deleteUser(id: string): Promise<void> {
     const deletedUser = await this.usersRepository.delete(id)
 
     if (!deletedUser) {
       throw new RepositoryNotFoundError('User not found')
     }
-
-    return true;
   }
 
 }

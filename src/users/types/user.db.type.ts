@@ -4,14 +4,16 @@ export interface IUserDB {
   passwordHash: string
   createdAt: Date
   emailConfirmation: EmailConfirmation
-  passwordRecovery: {
-    recoveryCode: string | null
-    expirationDate: Date | null
-  }
+  passwordRecovery: PasswordRecovery
 }
 
 export interface EmailConfirmation {
   confirmationCode: string | null
   expirationDate: Date
   isConfirmed: boolean
+}
+
+export interface PasswordRecovery {
+  recoveryCode: string | null
+  expirationDate: Date | null
 }

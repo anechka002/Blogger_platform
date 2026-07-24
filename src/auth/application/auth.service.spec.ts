@@ -91,7 +91,7 @@ describe("integration tests for authService", () => {
         .spyOn(nodemailerService, 'sendEmail') // Следи за методом sendEmail внутри объекта nodemailerService.
         .mockResolvedValue(true) // Когда кто-то вызовет nodemailerService.sendEmail(), не выполняй реальную отправку письма, а сразу верни Promise, который успешно завершится значением true.
 
-      await authService.registerUser(userSmtpLogin, userSmtpEmail, '123')
+      await authService.registerUser({login: userSmtpLogin, email: userSmtpEmail, password: '123'})
 
       expect(sendEmailSpy).toHaveBeenCalled()
       expect(sendEmailSpy).toHaveBeenCalledTimes(1)
@@ -102,7 +102,7 @@ describe("integration tests for authService", () => {
         .spyOn(nodemailerService, 'sendEmail')
         .mockResolvedValue(true)
 
-      const result = await authService.registerUser(correctUserLogin, correctUserEmail, '123')
+      const result = await authService.registerUser({login: correctUserLogin, email: correctUserEmail, password: '123'})
 
       expect(result.data?.email).toBe(correctUserEmail)
       expect(result.data?.login).toBe(correctUserLogin)
@@ -115,9 +115,9 @@ describe("integration tests for authService", () => {
 
       let login = 'xxx'
 
-      await authService.registerUser(login, busyUserEmail, '123')
+      await authService.registerUser({login, email:busyUserEmail, password: '123'})
 
-      const result = await authService.registerUser('Anna', busyUserEmail, '123')
+      const result = await authService.registerUser({login: 'Anna', email: busyUserEmail, password: '123'})
 
         expect(result.data).toBeNull()
     })
@@ -127,9 +127,9 @@ describe("integration tests for authService", () => {
 
       let email = 'xxx@xxx.com'
 
-      await authService.registerUser(busyUserLogin, email, '123')
+      await authService.registerUser({login: busyUserLogin, email, password: '123'})
 
-      const result = await authService.registerUser(busyUserLogin, 'anna@anna.com', '123')
+      const result = await authService.registerUser({login: busyUserLogin, email: 'anna@anna.com', password: '123'})
 
         expect(result.data).toBeNull()
     })
