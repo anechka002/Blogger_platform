@@ -1,10 +1,7 @@
-import {
-  UsersRepository,
-} from "../../users/repositories/users.repository";
+import {UsersRepository,} from "../../users/repositories/users.repository";
 import {ResultStatus} from "../../core/result/resultCode";
 import {Result} from "../../core/result/result.type";
 import {IUserDB} from "../../users/types/user.db.type";
-import {add} from "date-fns";
 import {randomUUID} from "node:crypto";
 import {ILoginView} from "../types/login.view.type";
 import {Argon2Service} from "../adapters/argon.service";
@@ -15,8 +12,10 @@ import {
 } from "../../devices/repositories/devices-sessions.repository";
 import {EmailTemplateManager} from "../infrastructure/email-template.manager";
 import {inject, injectable} from "inversify";
-import {UserModel} from "../../users/domain/user.entity";
+import {UserDocument, UserModel} from "../../users/domain/user.entity";
 import {DeviceModel} from "../../devices/domain/device.entity";
+import {CreateUserDto} from "../../users/types/create-user.dto";
+import {addHours} from "date-fns";
 
 @injectable()
 export class AuthService {
@@ -117,7 +116,9 @@ export class AuthService {
   }
 
   // Регистрация пользователя
-  async registerUser(login: string, email: string, password: string): Promise<Result<IUserDB | null>> {
+  async registerUser(dto: CreateUserDto): Promise<Result<UserDocument | null>> {
+    const { login, email, password } = dto;
+
     const userByLogin = await this.usersRepository.findByLogin(login);
 
     if (userByLogin) {
@@ -141,44 +142,25 @@ export class AuthService {
 
     const passwordHash = await this.argon2Service.generateHash(password);
 
-    const newUser = new UserModel(
-      {
-        login,
-        email,
-        passwordHash,
-        createdAt: new Date(),
-        emailConfirmation: {
-          confirmationCode: randomUUID(),
-          expirationDate: add(new Date(), {
-            hours: 1,
-            minutes: 3
-          }),
-          isConfirmed: false
-        },
-        passwordRecovery: {
-          recoveryCode: null,
-          expirationDate: null,
-        }
-      }
-    )
+    const user = UserModel.createForRegistration({login, email, passwordHash})
 
-    await this.usersRepository.save(newUser);
+    await this.usersRepository.save(user);
 
     this.nodemailerService.sendEmail(
-        newUser.email,
+      user.email,
 'Registration confirmation',
-        this.emailTemplateManager.getRegistrationConfirmationTemplate(newUser.emailConfirmation.confirmationCode)
-    ).catch(error => console.log('error in send email', error));
+        this.emailTemplateManager.getRegistrationConfirmationTemplate(user.emailConfirmation.confirmationCode)
+    ).catch(error => console.log('Failed to send registration confirmation email', error));
 
     return {
       status: ResultStatus.Success,
       extensions: [],
-      data: newUser
+      data: user
     }
   }
 
   // Подтверждает регистрацию пользователя по коду подтверждения
-  async registrationConfirmation(code: string): Promise<Result<IUserDB | null>> {
+  async registrationConfirmation(code: string): Promise<Result<UserDocument | null>> {
     // Ищем пользователя, у которого emailConfirmation.confirmationCode === code
     const user = await this.usersRepository.findByConfirmationCode(code);
 
@@ -212,11 +194,8 @@ export class AuthService {
       }
     }
 
-    // меняем поле прямо у документа
-    user.emailConfirmation.isConfirmed = true
-
-    // Очистка кода — это просто дополнительная “уборка”: код уже не нужен, можно стереть.
-    user.emailConfirmation.confirmationCode = null
+    // После успешных проверок меняем состояние пользователя
+    user.confirmEmail()
 
     // сохраняем изменения в MongoDB
     await this.usersRepository.save(user)
@@ -257,20 +236,37 @@ export class AuthService {
     const newConfirmationCode = randomUUID()
 
     // Генерируем новую expirationDate
-    const newExpirationDate = add(new Date(), {hours: 1,minutes: 3})
+    const newExpirationDate = addHours(new Date(), 1)
 
-    // Обновляем user в базе
-    user.emailConfirmation.confirmationCode = newConfirmationCode
-    user.emailConfirmation.expirationDate = newExpirationDate
+    // Обновляем код подтверждения и срок его действия у найденного пользователя в памяти
+    user.refreshEmailConfirmation(newConfirmationCode, newExpirationDate)
 
+    // Сохраняем обновлённый confirmationCode и новую expirationDate в MongoDB
     await this.usersRepository.save(user)
 
     // Отправляем новое письмо
-    this.nodemailerService.sendEmail(
+    try {
+      this.nodemailerService.sendEmail(
         user.email,
-'Registration confirmation',
-        this.emailTemplateManager.getRegistrationConfirmationTemplate(newConfirmationCode)
-    ).catch(error => console.log('error in send email', error));
+        'Registration confirmation',
+        this.emailTemplateManager.getRegistrationConfirmationTemplate(newConfirmationCode))
+    } catch (error: unknown) {
+      console.log('Failed to send registration confirmation email', error)
+
+      return {
+        status: ResultStatus.ServerError,
+        errorMessage: 'Internal Server Error',
+        data: null,
+        extensions: [],
+      }
+    }
+
+//     // Отправляем новое письмо
+//     this.nodemailerService.sendEmail(
+//         user.email,
+// 'Registration confirmation',
+//         this.emailTemplateManager.getRegistrationConfirmationTemplate(newConfirmationCode)
+//     ).catch(error => console.log('error in send email', error));
 
     // Возвращаем 204
     return {
@@ -392,11 +388,9 @@ export class AuthService {
     // создали recoveryCode
     const recoveryCode = randomUUID()
     // создали expirationDate
-    const expirationDate = add(new Date(), { hours: 1, minutes: 3 })
+    const expirationDate = addHours(new Date(), 1)
 
-    // сохранили это в БД
-    user.passwordRecovery.recoveryCode = recoveryCode;
-    user.passwordRecovery.expirationDate = expirationDate;
+    user.setPasswordRecovery(recoveryCode, expirationDate)
 
     await this.usersRepository.save(user)
 
@@ -439,13 +433,24 @@ export class AuthService {
       }
     }
 
-    // захэшировали новый пароль
-    const newPasswordHash = await this.argon2Service.generateHash(newPassword);
+    let newPasswordHash: string
 
-    // сохранили новый passwordHash и зачистили recoveryCode
-    user.passwordHash = newPasswordHash;
-    user.passwordRecovery.recoveryCode = null
-    user.passwordRecovery.expirationDate = null
+    try {
+      // Хешируем новый пароль внешним сервисом
+      newPasswordHash = await this.argon2Service.generateHash(newPassword);
+    } catch (error: unknown) {
+      console.error('Failed to generate password hash during password recovery', error)
+
+      return {
+        status: ResultStatus.ServerError,
+        errorMessage: 'Internal Server Error',
+        data: null,
+        extensions: [],
+      }
+    }
+
+    // Проверяем срок действия восстановления, меняем пароль и очищаем использованный код
+    user.completePasswordRecovery(newPasswordHash)
 
     await this.usersRepository.save(user)
 

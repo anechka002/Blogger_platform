@@ -91,9 +91,7 @@ export class AuthController {
   }
 
   async registration(req: RequestWithBody<RegistrationDto>, res: Response) {
-    const {email, password, login} = req.body;
-
-    const result = await this.authService.registerUser(login, email, password);
+    const result = await this.authService.registerUser(req.body);
 
     if(result.status !== ResultStatus.Success) {
       return res.status(resultCodeToHttpException(result.status)).send(result.extensions);
